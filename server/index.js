@@ -35,8 +35,13 @@ app.get('/', (req, res) => {
     res.send("InterviewAI API is operational");
 });
 
-app.listen(PORT, async () => {
+const server = app.listen(PORT, async () => {
     console.log(`InterviewAI Server running on http://localhost:${PORT}`);
-    await connectDb();
+    try {
+        await connectDb();
+    } catch (e) {}
     await seedDummyUser();
 });
+
+// Keep process active
+setInterval(() => {}, 60000);

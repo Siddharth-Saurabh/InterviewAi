@@ -1,8 +1,9 @@
 import User from '../models/user.model.js';
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 
-// In-memory mock store if DB is offline
+// In-memory mock store
 const memoryUsers = new Map();
 
 // Initialize permanent dummy user in memory
@@ -18,12 +19,14 @@ memoryUsers.set(DUMMY_EMAIL, {
     credits: 250
 });
 
+const isDbConnected = () => mongoose.connection && mongoose.connection.readyState === 1;
+
 const hashPassword = (pwd) => {
     return crypto.createHash('sha256').update(pwd).digest('hex');
 };
 
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET || 'super_secret_interviewai_jwt_token_key_2025', {
+    return jwt.sign({ id: String(id) }, process.env.JWT_SECRET || 'super_secret_interviewai_jwt_token_key_2025', {
         expiresIn: '30d'
     });
 };
@@ -31,6 +34,10 @@ const generateToken = (id) => {
 // Auto seed default permanent dummy account in MongoDB if connected
 export const seedDummyUser = async () => {
     try {
+        if (!isDbConnected()) {
+            console.log('Using permanent demo account: demo@interviewai.dev / Password123!');
+            return;
+        }
         let user = await User.findOne({ email: DUMMY_EMAIL });
         if (!user) {
             user = await User.create({
@@ -42,7 +49,7 @@ export const seedDummyUser = async () => {
             console.log('Seeded permanent dummy user into MongoDB: demo@interviewai.dev / Password123!');
         }
     } catch (e) {
-        console.log('Using in-memory user store for dummy account (demo@interviewai.dev / Password123!)');
+        console.log('Using in-memory dummy account (demo@interviewai.dev / Password123!)');
     }
 };
 
@@ -55,10 +62,12 @@ export const loginUser = async (req, res) => {
         }
 
         let user = null;
-        try {
-            user = await User.findOne({ email });
-        } catch (dbErr) {
-            user = memoryUsers.get(email);
+        if (isDbConnected()) {
+            try {
+                user = await User.findOne({ email });
+            } catch (e) {
+                user = null;
+            }
         }
 
         if (!user && memoryUsers.has(email)) {
@@ -76,7 +85,7 @@ export const loginUser = async (req, res) => {
 
         const token = generateToken(user._id || user.id || DUMMY_USER_ID);
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             user: {
                 id: user._id || user.id || DUMMY_USER_ID,
@@ -87,8 +96,8 @@ export const loginUser = async (req, res) => {
             token
         });
     } catch (error) {
-        console.error('Error in loginUser:', error);
-        res.status(500).json({ success: false, message: 'Server error during login' });
+        console.error('CRITICAL Error in loginUser:', error);
+        return res.status(500).json({ success: false, message: 'Server error during login', error: error.message });
     }
 };
 
@@ -101,19 +110,25 @@ export const registerUser = async (req, res) => {
         }
 
         let user = null;
-        try {
-            user = await User.findOne({ email });
-            if (user) {
-                return res.status(400).json({ success: false, message: 'User with this email already exists' });
-            }
+        if (isDbConnected()) {
+            try {
+                user = await User.findOne({ email });
+                if (user) {
+                    return res.status(400).json({ success: false, message: 'User with this email already exists' });
+                }
 
-            user = await User.create({
-                name: name || email.split('@')[0],
-                email,
-                password: hashPassword(password),
-                credits: 100
-            });
-        } catch (dbErr) {
+                user = await User.create({
+                    name: name || email.split('@')[0],
+                    email,
+                    password: hashPassword(password),
+                    credits: 100
+                });
+            } catch (e) {
+                user = null;
+            }
+        }
+
+        if (!user) {
             if (memoryUsers.has(email)) {
                 return res.status(400).json({ success: false, message: 'User with this email already exists' });
             }
@@ -130,7 +145,7 @@ export const registerUser = async (req, res) => {
 
         const token = generateToken(user._id);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             user: {
                 id: user._id,
@@ -142,7 +157,7 @@ export const registerUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in registerUser:', error);
-        res.status(500).json({ success: false, message: 'Server error during registration' });
+        return res.status(500).json({ success: false, message: 'Server error during registration', error: error.message });
     }
 };
 
@@ -156,19 +171,25 @@ export const syncUser = async (req, res) => {
         }
 
         let user = null;
-        try {
-            user = await User.findOne({ email });
-            if (!user) {
-                user = await User.create({
-                    name: name || email.split('@')[0],
-                    email,
-                    credits: 100
-                });
-            } else if (name && user.name !== name) {
-                user.name = name;
-                await user.save();
+        if (isDbConnected()) {
+            try {
+                user = await User.findOne({ email });
+                if (!user) {
+                    user = await User.create({
+                        name: name || email.split('@')[0],
+                        email,
+                        credits: 100
+                    });
+                } else if (name && user.name !== name) {
+                    user.name = name;
+                    await user.save();
+                }
+            } catch (e) {
+                user = null;
             }
-        } catch (dbErr) {
+        }
+
+        if (!user) {
             if (!memoryUsers.has(email)) {
                 const newId = `user_${Date.now()}`;
                 user = {
@@ -185,7 +206,7 @@ export const syncUser = async (req, res) => {
 
         const token = generateToken(user._id);
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             user: {
                 id: user._id,
@@ -197,7 +218,7 @@ export const syncUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error in syncUser:', error);
-        res.status(500).json({ success: false, message: 'Server error syncing user', error: error.message });
+        return res.status(500).json({ success: false, message: 'Server error syncing user', error: error.message });
     }
 };
 
@@ -205,9 +226,19 @@ export const syncUser = async (req, res) => {
 export const getProfile = async (req, res) => {
     try {
         let user = null;
-        try {
-            user = await User.findById(req.user._id);
-        } catch (e) {
+        if (isDbConnected() && req.user?._id) {
+            try {
+                user = await User.findById(req.user._id);
+            } catch (e) {
+                user = null;
+            }
+        }
+
+        if (!user && req.user?.email && memoryUsers.has(req.user.email)) {
+            user = memoryUsers.get(req.user.email);
+        }
+
+        if (!user) {
             user = req.user;
         }
 
@@ -215,17 +246,17 @@ export const getProfile = async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             user: {
-                id: user._id,
+                id: user._id || user.id || DUMMY_USER_ID,
                 name: user.name,
                 email: user.email,
-                credits: user.credits
+                credits: user.credits || 100
             }
         });
     } catch (error) {
         console.error('Error in getProfile:', error);
-        res.status(500).json({ success: false, message: 'Server error retrieving profile' });
+        return res.status(500).json({ success: false, message: 'Server error retrieving profile' });
     }
 };
