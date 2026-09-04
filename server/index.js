@@ -8,6 +8,7 @@ import connectDb from './config/connectDb.js';
 import authRoutes from './routes/auth.routes.js';
 import interviewRoutes from './routes/interview.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import { seedDummyUser } from './controllers/auth.controller.js';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -34,7 +35,8 @@ app.get('/', (req, res) => {
     res.send("InterviewAI API is operational");
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`InterviewAI Server running on http://localhost:${PORT}`);
-    connectDb();
+    await connectDb();
+    await seedDummyUser();
 });
