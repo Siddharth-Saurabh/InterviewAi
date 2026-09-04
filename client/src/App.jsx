@@ -33,9 +33,9 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Initialize guest or sync user profile on mount
+  // Initialize and authenticate on mount
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const initAuth = async () => {
       const token = localStorage.getItem('interviewai_token');
       if (token) {
         try {
@@ -45,26 +45,47 @@ export default function App() {
           const data = await res.json();
           if (data.success) {
             setUser(data.user);
+            return;
           }
         } catch (e) {
           console.warn('Profile fetch error:', e);
         }
-      } else {
-        // Create local guest session if none
-        let guestEmail = localStorage.getItem('interviewai_guest_email');
-        if (!guestEmail) {
-          guestEmail = `guest_${Math.random().toString(36).substring(7)}@interviewai.dev`;
-          localStorage.setItem('interviewai_guest_email', guestEmail);
-        }
-        setUser({
-          name: 'Demo Candidate',
-          email: guestEmail,
-          credits: 100
-        });
       }
+
+      // Automatically authenticate with Demo User if not logged in
+      try {
+        const demoRes = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'demo@interviewai.dev',
+            password: 'Password123!'
+          })
+        });
+        const demoData = await demoRes.json();
+        if (demoData.success) {
+          localStorage.setItem('interviewai_token', demoData.token);
+          setUser(demoData.user);
+          return;
+        }
+      } catch (err) {
+        console.warn('Demo auto-login fallback:', err);
+      }
+
+      // Guest fallback
+      let guestEmail = localStorage.getItem('interviewai_guest_email');
+      if (!guestEmail) {
+        guestEmail = `candidate_${Math.random().toString(36).substring(7)}@interviewai.dev`;
+        localStorage.setItem('interviewai_guest_email', guestEmail);
+      }
+      setUser({
+        name: 'Demo Candidate',
+        email: guestEmail,
+        credits: 100
+      });
     };
 
-    fetchUserProfile();
+    initAuth();
   }, []);
 
   const showToast = (msg) => {
@@ -83,7 +104,7 @@ export default function App() {
     setLoading(true);
     try {
       const token = localStorage.getItem('interviewai_token');
-      const guestEmail = user?.email || localStorage.getItem('interviewai_guest_email') || 'guest@interviewai.dev';
+      const guestEmail = user?.email || localStorage.getItem('interviewai_guest_email') || 'demo@interviewai.dev';
 
       const res = await fetch(`${API_URL}/api/interview/generate`, {
         method: 'POST',
@@ -107,7 +128,7 @@ export default function App() {
         if (typeof data.remainingCredits === 'number') {
           setUser(prev => prev ? { ...prev, credits: data.remainingCredits } : null);
         }
-        showToast('Interview session generated successfully!');
+        showToast('Interview session synthesized! Good luck!');
       } else {
         showToast(data.message || 'Failed to generate interview questions.');
       }
@@ -193,10 +214,10 @@ export default function App() {
     localStorage.removeItem('interviewai_token');
     setUser({
       name: 'Demo Candidate',
-      email: `guest_${Math.random().toString(36).substring(7)}@interviewai.dev`,
+      email: `candidate_${Math.random().toString(36).substring(7)}@interviewai.dev`,
       credits: 100
     });
-    showToast('Logged out successfully.');
+    showToast('Logged out. Switched to guest mode.');
   };
 
   return (

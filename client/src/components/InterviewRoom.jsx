@@ -7,13 +7,11 @@ import {
   Lightbulb, 
   Send, 
   Clock, 
-  ChevronRight, 
   Bot, 
-  CheckCircle,
-  HelpCircle,
-  Code,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  FileCode,
+  ListOrdered
 } from 'lucide-react';
 
 export default function InterviewRoom({ 
@@ -34,9 +32,15 @@ export default function InterviewRoom({
 
   const recognitionRef = useRef(null);
 
-  // Timer per question
+  // Reset state when moving to new question
   useEffect(() => {
+    setUserAnswer('');
+    setShowHint(false);
     setSecondsElapsed(0);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
     const timer = setInterval(() => {
       setSecondsElapsed((prev) => prev + 1);
     }, 1000);
@@ -62,7 +66,7 @@ export default function InterviewRoom({
       };
 
       recognition.onerror = (event) => {
-        console.warn('Speech recognition error:', event.error);
+        console.warn('Speech recognition notice:', event.error);
         setIsListening(false);
       };
 
@@ -72,6 +76,12 @@ export default function InterviewRoom({
 
       recognitionRef.current = recognition;
     }
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
   }, []);
 
   // Audio Narration via Web Speech Synthesis
@@ -107,9 +117,21 @@ export default function InterviewRoom({
         recognitionRef.current.start();
         setIsListening(true);
       } catch (e) {
-        console.error('Voice start failed:', e);
+        console.error('Voice start error:', e);
       }
     }
+  };
+
+  // Insert STAR Framework Template
+  const insertStarTemplate = () => {
+    const template = `**Situation:** [Describe the context and background]\n**Task:** [What was your specific responsibility?]\n**Action:** [Detailed technical/engineering actions you took]\n**Result:** [Quantifiable outcomes, metrics, and key learnings]`;
+    setUserAnswer((prev) => (prev ? `${prev}\n\n${template}` : template));
+  };
+
+  // Insert Code Snippet Template
+  const insertCodeTemplate = () => {
+    const template = `\`\`\`javascript\n// Solution Walkthrough\nfunction solution() {\n  // 1. Edge case handling\n  // 2. Core implementation\n  // Time Complexity: O(N) | Space Complexity: O(1)\n}\n\`\`\``;
+    setUserAnswer((prev) => (prev ? `${prev}\n\n${template}` : template));
   };
 
   const handleSubmit = (e) => {
@@ -198,7 +220,7 @@ export default function InterviewRoom({
       <div className="glass-panel" style={{ padding: '32px 36px', marginBottom: 24 }}>
         
         {/* AI Interviewer Avatar & Speech State */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ 
               width: 46, 
@@ -307,52 +329,77 @@ export default function InterviewRoom({
 
         {/* Candidate Answer Workspace */}
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
             <label style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-muted)' }}>
-              Your Response / Code Walkthrough:
+              Your Response / Solution Architecture:
             </label>
 
-            {/* Voice Input Button */}
-            {speechSupported && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Quick Template Buttons */}
               <button
                 type="button"
-                onClick={toggleVoiceRecording}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid',
-                  borderColor: isListening ? '#f43f5e' : 'var(--border-subtle)',
-                  background: isListening ? 'rgba(244, 63, 94, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                  color: isListening ? '#fb7185' : 'var(--text-muted)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
+                onClick={insertStarTemplate}
+                className="secondary-btn"
+                style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '6px' }}
+                title="Insert Situation, Task, Action, Result framework"
               >
-                {isListening ? (
-                  <>
-                    <MicOff size={15} />
-                    <span>Recording Voice...</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic size={15} />
-                    <span>Answer with Voice</span>
-                  </>
-                )}
+                <ListOrdered size={13} />
+                <span>+ STAR Template</span>
               </button>
-            )}
+
+              <button
+                type="button"
+                onClick={insertCodeTemplate}
+                className="secondary-btn"
+                style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '6px' }}
+                title="Insert code snippet template"
+              >
+                <FileCode size={13} />
+                <span>+ Code Block</span>
+              </button>
+
+              {/* Voice Input Button */}
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={toggleVoiceRecording}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid',
+                    borderColor: isListening ? '#f43f5e' : 'var(--border-subtle)',
+                    background: isListening ? 'rgba(244, 63, 94, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                    color: isListening ? '#fb7185' : 'var(--text-muted)',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff size={15} />
+                      <span>Recording Voice...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mic size={15} />
+                      <span>Answer with Voice</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ position: 'relative' }}>
             <textarea
-              rows={8}
+              rows={9}
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
-              placeholder="Type your structured answer here. You can also paste code snippets, explain architectural design trade-offs, or use your microphone..."
+              placeholder="Type your structured answer here. You can explain architectural design trade-offs, paste code, or click 'Answer with Voice'..."
               style={{
                 width: '100%',
                 background: 'rgba(5, 8, 16, 0.8)',

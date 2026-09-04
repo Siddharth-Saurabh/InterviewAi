@@ -9,11 +9,11 @@ import {
   Layers, 
   Share2,
   Download,
-  Flame
+  Flame,
+  Home
 } from 'lucide-react';
 
 export default function FinalReport({ interviewData, evaluations, onRetake, onGoHome }) {
-  // Trigger celebration confetti
   useEffect(() => {
     try {
       confetti({
@@ -21,9 +21,7 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
         spread: 70,
         origin: { y: 0.6 }
       });
-    } catch (e) {
-      console.warn('Confetti effect skipped:', e);
-    }
+    } catch (e) {}
   }, []);
 
   const scores = evaluations.map(e => e.score || 7);
@@ -37,6 +35,39 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
   };
 
   const readiness = getReadinessLevel(averageScore);
+
+  // Export full scorecard as Markdown file
+  const handleDownloadReport = () => {
+    let reportContent = `# InterviewAI Scorecard Report\n`;
+    reportContent += `**Role:** ${interviewData?.title || 'Software Engineer'}\n`;
+    reportContent += `**Date:** ${new Date().toLocaleDateString()}\n`;
+    reportContent += `**Overall Score:** ${averageScore} / 10 (${readiness.text})\n\n`;
+    reportContent += `---\n\n## Question Breakdown\n\n`;
+
+    evaluations.forEach((ev, idx) => {
+      const q = interviewData?.questions?.[idx] || {};
+      reportContent += `### Question ${idx + 1}: ${q.question || 'Technical Question'}\n`;
+      reportContent += `- **Score:** ${ev.score || 7} / 10\n`;
+      reportContent += `- **Category:** ${q.category || 'Technical'}\n`;
+      reportContent += `- **Summary:** ${ev.summary || ''}\n`;
+      reportContent += `- **Strengths:**\n`;
+      (ev.strengths || []).forEach(s => reportContent += `  - ${s}\n`);
+      reportContent += `- **Growth Areas:**\n`;
+      (ev.improvements || []).forEach(imp => reportContent += `  - ${imp}\n`);
+      if (ev.idealAnswer) {
+        reportContent += `- **Model Benchmark Answer:**\n  ${ev.idealAnswer}\n`;
+      }
+      reportContent += `\n---\n\n`;
+    });
+
+    const blob = new Blob([reportContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `InterviewAI_Report_${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="container" style={{ maxWidth: 960, paddingBottom: 80 }}>
@@ -77,7 +108,9 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
           background: 'rgba(0, 0, 0, 0.3)',
           border: '1px solid var(--border-subtle)',
           borderRadius: '16px',
-          padding: '16px 28px'
+          padding: '16px 28px',
+          flexWrap: 'wrap',
+          justifyContent: 'center'
         }}>
           <div>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: readiness.color, lineHeight: 1 }}>
@@ -100,10 +133,21 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
       </div>
 
       {/* Per-Question Review List */}
-      <h3 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <BarChart3 size={20} color="#6366f1" />
-        Question-by-Question Breakdown
-      </h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+        <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <BarChart3 size={20} color="#6366f1" />
+          Question-by-Question Breakdown
+        </h3>
+
+        <button
+          onClick={handleDownloadReport}
+          className="secondary-btn"
+          style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '0.85rem' }}
+        >
+          <Download size={15} />
+          <span>Export Scorecard (.md)</span>
+        </button>
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 36 }}>
         {evaluations.map((ev, idx) => {
@@ -147,6 +191,7 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
           className="secondary-btn"
           style={{ padding: '14px 24px', fontSize: '1rem', borderRadius: '12px' }}
         >
+          <Home size={18} />
           <span>Return to Dashboard</span>
         </button>
       </div>
