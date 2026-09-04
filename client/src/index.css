@@ -3,10 +3,10 @@
 :root {
   --bg-primary: #0a0d14;
   --bg-secondary: #0f1523;
-  --bg-card: rgba(18, 24, 38, 0.7);
-  --bg-card-hover: rgba(28, 37, 58, 0.85);
+  --bg-card: rgba(18, 24, 38, 0.75);
+  --bg-card-hover: rgba(28, 37, 58, 0.9);
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(99, 102, 241, 0.3);
+  --border-glow: rgba(99, 102, 241, 0.35);
   
   --primary: #6366f1;
   --primary-hover: #4f46e5;
@@ -76,7 +76,7 @@ body {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-card);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-panel:hover {
@@ -95,7 +95,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
 }
 
