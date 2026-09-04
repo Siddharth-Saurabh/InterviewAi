@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar.jsx';
+import AuthPage from './components/AuthPage.jsx';
 import InterviewSetup from './components/InterviewSetup.jsx';
 import InterviewRoom from './components/InterviewRoom.jsx';
 import AnswerFeedback from './components/AnswerFeedback.jsx';
 import FinalReport from './components/FinalReport.jsx';
 import HistoryAnalytics from './components/HistoryAnalytics.jsx';
 import PricingModal from './components/PricingModal.jsx';
-import AuthModal from './components/AuthModal.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function App() {
   // Global State
   const [user, setUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [activeTab, setActiveTab] = useState('interview'); // 'interview' | 'history'
   const [sessionStage, setSessionStage] = useState('setup'); // 'setup' | 'in-progress' | 'feedback' | 'report'
 
   // Modals
   const [pricingOpen, setPricingOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
 
   // Interview Session Data
   const [currentInterviewId, setCurrentInterviewId] = useState(null);
@@ -33,9 +33,9 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Initialize and authenticate on mount
+  // Check stored authentication token on mount
   useEffect(() => {
-    const initAuth = async () => {
+    const verifyStoredAuth = async () => {
       const token = localStorage.getItem('interviewai_token');
       if (token) {
         try {
@@ -43,54 +43,41 @@ export default function App() {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const data = await res.json();
-          if (data.success) {
+          if (data.success && data.user) {
             setUser(data.user);
-            return;
+          } else {
+            localStorage.removeItem('interviewai_token');
+            setUser(null);
           }
         } catch (e) {
-          console.warn('Profile fetch error:', e);
+          console.warn('Profile fetch check error:', e);
+          setUser(null);
         }
+      } else {
+        setUser(null);
       }
-
-      // Automatically authenticate with Demo User if not logged in
-      try {
-        const demoRes = await fetch(`${API_URL}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: 'demo@interviewai.dev',
-            password: 'Password123!'
-          })
-        });
-        const demoData = await demoRes.json();
-        if (demoData.success) {
-          localStorage.setItem('interviewai_token', demoData.token);
-          setUser(demoData.user);
-          return;
-        }
-      } catch (err) {
-        console.warn('Demo auto-login fallback:', err);
-      }
-
-      // Guest fallback
-      let guestEmail = localStorage.getItem('interviewai_guest_email');
-      if (!guestEmail) {
-        guestEmail = `candidate_${Math.random().toString(36).substring(7)}@interviewai.dev`;
-        localStorage.setItem('interviewai_guest_email', guestEmail);
-      }
-      setUser({
-        name: 'Demo Candidate',
-        email: guestEmail,
-        credits: 100
-      });
+      setAuthChecking(false);
     };
 
-    initAuth();
+    verifyStoredAuth();
   }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 4000);
+  };
+
+  const handleAuthSuccess = (authenticatedUser) => {
+    setUser(authenticatedUser);
+    showToast(`Welcome, ${authenticatedUser.name || authenticatedUser.email}!`);
+  };
+
+  // Logout handler returns user to Login Screen
+  const handleLogout = () => {
+    localStorage.removeItem('interviewai_token');
+    setUser(null);
+    setSessionStage('setup');
+    showToast('Logged out successfully.');
   };
 
   // 1. Start Interview Session
@@ -104,14 +91,12 @@ export default function App() {
     setLoading(true);
     try {
       const token = localStorage.getItem('interviewai_token');
-      const guestEmail = user?.email || localStorage.getItem('interviewai_guest_email') || 'demo@interviewai.dev';
 
       const res = await fetch(`${API_URL}/api/interview/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-          'x-guest-email': guestEmail
+          'Authorization': token ? `Bearer ${token}` : ''
         },
         body: JSON.stringify(config)
       });
@@ -128,7 +113,7 @@ export default function App() {
         if (typeof data.remainingCredits === 'number') {
           setUser(prev => prev ? { ...prev, credits: data.remainingCredits } : null);
         }
-        showToast('Interview session synthesized! Good luck!');
+        showToast('Interview session generated with AI!');
       } else {
         showToast(data.message || 'Failed to generate interview questions.');
       }
@@ -209,17 +194,37 @@ export default function App() {
     showToast(`Successfully added ${creditsAdded} AI credits to your account!`);
   };
 
-  // 6. Logout
-  const handleLogout = () => {
-    localStorage.removeItem('interviewai_token');
-    setUser({
-      name: 'Demo Candidate',
-      email: `candidate_${Math.random().toString(36).substring(7)}@interviewai.dev`,
-      credits: 100
-    });
-    showToast('Logged out. Switched to guest mode.');
-  };
+  // Initial loading splash
+  if (authChecking) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-primary)'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="wave-bar" style={{ display: 'inline-block', height: 24, margin: '0 4px' }} />
+          <div className="wave-bar" style={{ display: 'inline-block', height: 34, margin: '0 4px' }} />
+          <div className="wave-bar" style={{ display: 'inline-block', height: 20, margin: '0 4px' }} />
+          <p style={{ marginTop: 14, color: 'var(--text-muted)', fontSize: '0.9rem' }}>Loading InterviewAI...</p>
+        </div>
+      </div>
+    );
+  }
 
+  // IF NOT AUTHENTICATED: Display Full Login / Sign-Up Screen
+  if (!user) {
+    return (
+      <AuthPage
+        onAuthSuccess={handleAuthSuccess}
+        apiUrl={API_URL}
+      />
+    );
+  }
+
+  // IF AUTHENTICATED: Display Full Interview Dashboard
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
@@ -256,7 +261,6 @@ export default function App() {
           }
         }}
         onOpenPricing={() => setPricingOpen(true)}
-        onOpenAuth={() => setAuthOpen(true)}
         onLogout={handleLogout}
       />
 
@@ -317,17 +321,6 @@ export default function App() {
         onCreditSuccess={handleCreditSuccess}
         apiUrl={API_URL}
         user={user}
-      />
-
-      {/* Auth / Sign In Modal */}
-      <AuthModal
-        isOpen={authOpen}
-        onClose={() => setAuthOpen(false)}
-        onAuthSuccess={(u) => {
-          setUser(u);
-          showToast(`Welcome, ${u.name || u.email}!`);
-        }}
-        apiUrl={API_URL}
       />
 
       {/* Footer */}
