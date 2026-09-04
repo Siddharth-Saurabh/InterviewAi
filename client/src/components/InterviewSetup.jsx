@@ -7,11 +7,14 @@ import {
   MessageSquare, 
   Sliders, 
   ArrowRight, 
-  CheckCircle2,
-  Zap,
-  Target,
-  Clock,
-  Compass
+  CheckCircle2, 
+  Zap, 
+  Target, 
+  Clock, 
+  Compass,
+  Trophy,
+  Flame,
+  Award
 } from 'lucide-react';
 
 const POPULAR_ROLES = [
@@ -30,10 +33,31 @@ const EXPERIENCE_LEVELS = [
   { id: 'Senior', label: 'Senior (5+ Yrs)', desc: 'Architectural scale, leadership, and deep technical mastery' }
 ];
 
-const INTERVIEW_TYPES = [
-  { id: 'Technical', icon: Code2, label: 'Technical Depth', desc: 'Core engineering concepts, live algorithms & architecture' },
-  { id: 'Behavioral', icon: MessageSquare, label: 'Behavioral & STAR', desc: 'Communication, conflict resolution, leadership and cultural fit' },
-  { id: 'System Design', icon: Layers, label: 'System Design', desc: 'High concurrency, database scaling, caching, and microservices' }
+const INTERVIEW_ROUNDS = [
+  {
+    roundNumber: 1,
+    id: 'Technical',
+    title: 'Round 1: Technical Screening',
+    tag: 'Core Concepts & Live Coding',
+    icon: Code2,
+    desc: 'Deep dive into language mechanics, algorithms, async data flows, and debugging.'
+  },
+  {
+    roundNumber: 2,
+    id: 'System Design',
+    title: 'Round 2: System Design & Architecture',
+    tag: 'Scalability & Microservices',
+    icon: Layers,
+    desc: 'High concurrency, database sharding, caching layers (Redis), and distributed reliability.'
+  },
+  {
+    roundNumber: 3,
+    id: 'Behavioral',
+    title: 'Round 3: Behavioral & Bar Raiser',
+    tag: 'STAR Framework & Leadership',
+    icon: MessageSquare,
+    desc: 'Executive communication, stakeholder trade-offs, conflict resolution, and culture fit.'
+  }
 ];
 
 const TECH_SUGGESTIONS = [
@@ -41,11 +65,11 @@ const TECH_SUGGESTIONS = [
   'PostgreSQL', 'Docker', 'AWS', 'GraphQL', 'TailwindCSS', 'Redis', 'Python'
 ];
 
-export default function InterviewSetup({ onStartInterview, loading, userCredits }) {
+export default function InterviewSetup({ onStartInterview, loading, userCredits, initialRound = 1 }) {
   const [role, setRole] = useState('Full Stack MERN Developer');
   const [customRole, setCustomRole] = useState('');
   const [level, setLevel] = useState('Mid-Level');
-  const [interviewType, setInterviewType] = useState('Technical');
+  const [selectedRound, setSelectedRound] = useState(initialRound);
   const [selectedTech, setSelectedTech] = useState(['React', 'Node.js', 'MongoDB', 'Express']);
   const [customTechInput, setCustomTechInput] = useState('');
   const [questionCount, setQuestionCount] = useState(5);
@@ -70,10 +94,13 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
 
   const handleStart = () => {
     const finalRole = customRole.trim() ? customRole.trim() : role;
+    const roundConfig = INTERVIEW_ROUNDS.find(r => r.roundNumber === selectedRound) || INTERVIEW_ROUNDS[0];
+
     onStartInterview({
       role: finalRole,
       level,
-      interviewType,
+      roundNumber: selectedRound,
+      interviewType: roundConfig.id,
       techStack: selectedTech,
       questionCount
     });
@@ -82,10 +109,10 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
   return (
     <div className="container" style={{ paddingBottom: 60 }}>
       {/* Hero Header */}
-      <div style={{ textAlign: 'center', maxWidth: 780, margin: '0 auto 36px auto' }}>
+      <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto 36px auto' }}>
         <div className="badge badge-primary" style={{ marginBottom: 14, padding: '6px 14px' }}>
           <Sparkles size={14} color="#818cf8" />
-          <span>Next-Gen AI Mock Interview Simulator</span>
+          <span>Full Multi-Round Tech Hiring Pipeline Simulator</span>
         </div>
         <h1 style={{ 
           fontSize: 'clamp(2rem, 5vw, 3.2rem)', 
@@ -94,24 +121,24 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
           letterSpacing: '-0.03em',
           marginBottom: 16 
         }}>
-          Ace Your Next Interview with <br/>
+          Simulate Full Tech Hiring Rounds <br/>
           <span style={{ 
             background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #a855f7 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
-            Real-Time AI Mentorship
+            From Screening to Offer Letter
           </span>
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: 1.6 }}>
-          Simulate realistic hiring rounds tailored for high-growth tech companies. 
-          Get instant scoring, in-depth architectural feedback, voice synthesis, and benchmark answers.
+          Practice Round 1 (Technical Screening), Round 2 (System Architecture), and Round 3 (Bar Raiser). 
+          Clear each stage to unlock the next round with real-time AI scoring and 10/10 model answers.
         </p>
       </div>
 
-      {/* Setup Card Grid */}
+      {/* Setup Card */}
       <div className="glass-panel" style={{ 
-        maxWidth: 900, 
+        maxWidth: 920, 
         margin: '0 auto', 
         padding: '32px 36px',
         position: 'relative',
@@ -119,11 +146,65 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
 
-          {/* 1. Target Role */}
+          {/* 1. Interview Stage / Round Selector */}
           <div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Briefcase size={18} color="#6366f1" />
-              1. Select or Enter Target Role
+              <Compass size={18} color="#6366f1" />
+              1. Select Interview Stage / Round
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
+              {INTERVIEW_ROUNDS.map((rnd) => {
+                const IconComponent = rnd.icon;
+                const isSelected = selectedRound === rnd.roundNumber;
+                return (
+                  <div
+                    key={rnd.roundNumber}
+                    onClick={() => setSelectedRound(rnd.roundNumber)}
+                    style={{
+                      padding: '18px',
+                      borderRadius: '14px',
+                      border: '1px solid',
+                      borderColor: isSelected ? '#6366f1' : 'var(--border-subtle)',
+                      background: isSelected ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.02)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        background: isSelected ? 'rgba(99, 102, 241, 0.3)' : 'rgba(255, 255, 255, 0.05)',
+                        padding: '4px 10px',
+                        borderRadius: '6px'
+                      }}>
+                        <IconComponent size={16} color={isSelected ? '#818cf8' : 'var(--text-muted)'} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isSelected ? '#a5b4fc' : '#fff' }}>
+                          ROUND {rnd.roundNumber}
+                        </span>
+                      </div>
+                      {isSelected && <CheckCircle2 size={18} color="#818cf8" />}
+                    </div>
+
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+                      {rnd.title.split(': ')[1]}
+                    </h3>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                      {rnd.desc}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. Target Role */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
+              <Briefcase size={18} color="#06b6d4" />
+              2. Select or Enter Target Role
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
               {POPULAR_ROLES.map((r) => (
@@ -135,9 +216,9 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
                     padding: '8px 16px',
                     borderRadius: '10px',
                     border: '1px solid',
-                    borderColor: role === r && !customRole ? '#6366f1' : 'var(--border-subtle)',
-                    background: role === r && !customRole ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.03)',
-                    color: role === r && !customRole ? '#818cf8' : 'var(--text-main)',
+                    borderColor: role === r && !customRole ? '#06b6d4' : 'var(--border-subtle)',
+                    background: role === r && !customRole ? 'rgba(6, 182, 212, 0.2)' : 'rgba(255, 255, 255, 0.03)',
+                    color: role === r && !customRole ? '#22d3ee' : 'var(--text-main)',
                     fontSize: '0.9rem',
                     fontWeight: 500,
                     cursor: 'pointer',
@@ -150,7 +231,7 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
             </div>
             <input
               type="text"
-              placeholder="Or type a custom role (e.g., iOS Swift Engineer, Solana Web3 Dev...)"
+              placeholder="Or type a custom role (e.g., Senior iOS Engineer, Cloud Platform Architect...)"
               value={customRole}
               onChange={(e) => setCustomRole(e.target.value)}
               style={{
@@ -167,11 +248,11 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
             />
           </div>
 
-          {/* 2. Experience Level */}
+          {/* 3. Seniority Level */}
           <div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Target size={18} color="#06b6d4" />
-              2. Experience & Seniority Level
+              <Target size={18} color="#a855f7" />
+              3. Experience & Seniority Level
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
               {EXPERIENCE_LEVELS.map((exp) => (
@@ -182,68 +263,23 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
                     padding: '16px',
                     borderRadius: '12px',
                     border: '1px solid',
-                    borderColor: level === exp.id ? '#06b6d4' : 'var(--border-subtle)',
-                    background: level === exp.id ? 'rgba(6, 182, 212, 0.12)' : 'rgba(255, 255, 255, 0.02)',
+                    borderColor: level === exp.id ? '#a855f7' : 'var(--border-subtle)',
+                    background: level === exp.id ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.02)',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, color: level === exp.id ? '#22d3ee' : '#fff' }}>
+                    <span style={{ fontWeight: 700, color: level === exp.id ? '#c084fc' : '#fff' }}>
                       {exp.label}
                     </span>
-                    {level === exp.id && <CheckCircle2 size={18} color="#22d3ee" />}
+                    {level === exp.id && <CheckCircle2 size={18} color="#c084fc" />}
                   </div>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                     {exp.desc}
                   </p>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* 3. Interview Focus / Type */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Compass size={18} color="#a855f7" />
-              3. Interview Track & Format
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-              {INTERVIEW_TYPES.map((t) => {
-                const IconComponent = t.icon;
-                const isSelected = interviewType === t.id;
-                return (
-                  <div
-                    key={t.id}
-                    onClick={() => setInterviewType(t.id)}
-                    style={{
-                      padding: '16px',
-                      borderRadius: '12px',
-                      border: '1px solid',
-                      borderColor: isSelected ? '#a855f7' : 'var(--border-subtle)',
-                      background: isSelected ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.02)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <div style={{
-                        padding: 6,
-                        borderRadius: 8,
-                        background: isSelected ? 'rgba(168, 85, 247, 0.3)' : 'rgba(255, 255, 255, 0.05)'
-                      }}>
-                        <IconComponent size={18} color={isSelected ? '#c084fc' : 'var(--text-muted)'} />
-                      </div>
-                      <span style={{ fontWeight: 700, color: isSelected ? '#c084fc' : '#fff' }}>
-                        {t.label}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                      {t.desc}
-                    </p>
-                  </div>
-                );
-              })}
             </div>
           </div>
 
@@ -314,10 +350,10 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
               <Clock size={20} color="var(--text-muted)" />
               <div>
                 <span style={{ display: 'block', fontWeight: 600, fontSize: '0.95rem' }}>
-                  Interview Length
+                  Round Length
                 </span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Questions per session
+                  Questions in Round {selectedRound}
                 </span>
               </div>
             </div>
@@ -363,18 +399,18 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits 
                   <div className="wave-bar" style={{ height: 16 }} />
                   <div className="wave-bar" style={{ height: 22 }} />
                   <div className="wave-bar" style={{ height: 14 }} />
-                  <span>Synthesizing Interview Session with AI...</span>
+                  <span>Synthesizing Round {selectedRound} with AI...</span>
                 </div>
               ) : (
                 <>
                   <Sparkles size={20} />
-                  <span>Start AI Mock Interview</span>
+                  <span>Start Round {selectedRound}: {INTERVIEW_ROUNDS.find(r => r.roundNumber === selectedRound)?.title.split(': ')[1]}</span>
                   <ArrowRight size={20} />
                 </>
               )}
             </button>
             <p style={{ marginTop: 12, fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-              Costs 10 Credits • Instant Question Generation • Audio & Live Voice Ready
+              Costs 10 Credits • Instant Generation • Audio Voice Narration & Speech-to-Text Ready
             </p>
           </div>
 

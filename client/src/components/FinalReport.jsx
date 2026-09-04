@@ -7,18 +7,29 @@ import {
   CheckCircle, 
   BarChart3, 
   Layers, 
-  Share2,
-  Download,
-  Flame,
-  Home
+  Share2, 
+  Download, 
+  Flame, 
+  Home, 
+  ArrowRight, 
+  ShieldCheck, 
+  Award,
+  Crown
 } from 'lucide-react';
 
-export default function FinalReport({ interviewData, evaluations, onRetake, onGoHome }) {
+export default function FinalReport({ 
+  interviewData, 
+  evaluations, 
+  onRetake, 
+  onGoHome, 
+  onAdvanceNextRound,
+  currentRound = 1 
+}) {
   useEffect(() => {
     try {
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 120,
+        spread: 80,
         origin: { y: 0.6 }
       });
     } catch (e) {}
@@ -26,20 +37,45 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
 
   const scores = evaluations.map(e => e.score || 7);
   const averageScore = Math.round((scores.reduce((a, b) => a + b, 0) / (scores.length || 1)) * 10) / 10;
+  const passed = averageScore >= 6.5;
 
   const getReadinessLevel = (avg) => {
-    if (avg >= 8.5) return { text: 'Strong Hire / FAANG Ready', color: '#10b981', badge: 'Exceptional' };
-    if (avg >= 7.0) return { text: 'Hire / Solid Production Ready', color: '#06b6d4', badge: 'Competent' };
-    if (avg >= 5.5) return { text: 'Needs Target Polish', color: '#fbbf24', badge: 'Developing' };
-    return { text: 'Foundational Review Needed', color: '#f43f5e', badge: 'Needs Work' };
+    if (avg >= 8.5) return { text: 'Strong Hire / FAANG Tier', color: '#10b981', badge: 'Exceptional' };
+    if (avg >= 7.0) return { text: 'Hire / Production Ready', color: '#06b6d4', badge: 'Passed' };
+    if (avg >= 5.5) return { text: 'Borderline / Needs Polish', color: '#fbbf24', badge: 'Developing' };
+    return { text: 'Foundational Review Needed', color: '#f43f5e', badge: 'Not Passed' };
   };
 
   const readiness = getReadinessLevel(averageScore);
 
-  // Export full scorecard as Markdown file
+  // Next round details
+  const getNextRoundInfo = () => {
+    if (currentRound === 1) {
+      return {
+        nextNumber: 2,
+        title: 'Round 2: System Design & Architecture',
+        desc: 'Test scalability, high-concurrency databases, Redis caching, and microservices.',
+        btnText: 'Advance to Round 2 (System Design)'
+      };
+    }
+    if (currentRound === 2) {
+      return {
+        nextNumber: 3,
+        title: 'Round 3: Behavioral & Bar Raiser',
+        desc: 'Test executive communication, STAR framework, conflict resolution, and leadership.',
+        btnText: 'Advance to Round 3 (Bar Raiser)'
+      };
+    }
+    return null;
+  };
+
+  const nextRound = getNextRoundInfo();
+
+  // Export report
   const handleDownloadReport = () => {
     let reportContent = `# InterviewAI Scorecard Report\n`;
     reportContent += `**Role:** ${interviewData?.title || 'Software Engineer'}\n`;
+    reportContent += `**Round:** Round ${currentRound}\n`;
     reportContent += `**Date:** ${new Date().toLocaleDateString()}\n`;
     reportContent += `**Overall Score:** ${averageScore} / 10 (${readiness.text})\n\n`;
     reportContent += `---\n\n## Question Breakdown\n\n`;
@@ -64,7 +100,7 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `InterviewAI_Report_${Date.now()}.md`;
+    a.download = `InterviewAI_Round${currentRound}_Report_${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -83,21 +119,31 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
           width: 70,
           height: 70,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+          background: currentRound === 3 && passed 
+            ? 'linear-gradient(135deg, #f59e0b 0%, #10b981 100%)'
+            : 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 16px auto',
           boxShadow: '0 0 25px rgba(99, 102, 241, 0.4)'
         }}>
-          <Trophy size={36} color="#fff" />
+          {currentRound === 3 && passed ? <Crown size={38} color="#fff" /> : <Trophy size={36} color="#fff" />}
+        </div>
+
+        <div className="badge badge-primary" style={{ marginBottom: 10 }}>
+          {currentRound === 3 ? 'Final Round 3 Completed' : `Round ${currentRound} Completed`}
         </div>
 
         <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: 8 }}>
-          Interview Session Completed!
+          {currentRound === 3 && passed
+            ? '🎉 Congratulations! You Cleared All 3 Hiring Rounds!'
+            : `Round ${currentRound} Scorecard & Evaluation`}
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', maxWidth: 600, margin: '0 auto 24px auto' }}>
-          Here is your comprehensive hiring evaluation based on industry-standard engineering benchmarks.
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', maxWidth: 640, margin: '0 auto 24px auto' }}>
+          {currentRound === 3 && passed
+            ? 'Outstanding performance across Technical Screening, System Design, and Behavioral Bar Raiser. You meet the benchmark for a Top-Tier Offer!'
+            : 'Review your detailed evaluation, strengths, and areas for improvement below.'}
         </p>
 
         {/* Score and Readiness Badge */}
@@ -132,11 +178,47 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
         </div>
       </div>
 
+      {/* Next Round Progression Banner */}
+      {passed && nextRound && (
+        <div className="glass-panel" style={{
+          padding: '24px 28px',
+          marginBottom: 28,
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)',
+          border: '1px solid rgba(99, 102, 241, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 16
+        }}>
+          <div>
+            <div className="badge badge-cyan" style={{ marginBottom: 6 }}>
+              ✨ Stage Cleared • Advance to Next Stage
+            </div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff' }}>
+              {nextRound.title}
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: 2 }}>
+              {nextRound.desc}
+            </p>
+          </div>
+
+          <button
+            onClick={() => onAdvanceNextRound(nextRound.nextNumber)}
+            className="glow-btn"
+            style={{ padding: '12px 24px', fontSize: '0.95rem', borderRadius: '12px' }}
+          >
+            <span>{nextRound.btnText}</span>
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      )}
+
       {/* Per-Question Review List */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
           <BarChart3 size={20} color="#6366f1" />
-          Question-by-Question Breakdown
+          Round {currentRound} Question-by-Question Breakdown
         </h3>
 
         <button
@@ -183,7 +265,7 @@ export default function FinalReport({ interviewData, evaluations, onRetake, onGo
           style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '12px' }}
         >
           <RotateCcw size={18} />
-          <span>Retake or Start New Role</span>
+          <span>Retake or Select New Stage</span>
         </button>
 
         <button

@@ -22,6 +22,8 @@ export default function App() {
 
   // Interview Session Data
   const [currentInterviewId, setCurrentInterviewId] = useState(null);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [currentConfig, setCurrentConfig] = useState(null);
   const [interviewData, setInterviewData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [evaluations, setEvaluations] = useState([]);
@@ -89,6 +91,9 @@ export default function App() {
     }
 
     setLoading(true);
+    setCurrentRound(config.roundNumber || 1);
+    setCurrentConfig(config);
+
     try {
       const token = localStorage.getItem('interviewai_token');
 
@@ -113,7 +118,7 @@ export default function App() {
         if (typeof data.remainingCredits === 'number') {
           setUser(prev => prev ? { ...prev, credits: data.remainingCredits } : null);
         }
-        showToast('Interview session generated with AI!');
+        showToast(`Round ${config.roundNumber || 1} generated successfully with AI!`);
       } else {
         showToast(data.message || 'Failed to generate interview questions.');
       }
@@ -125,7 +130,29 @@ export default function App() {
     }
   };
 
-  // 2. Submit Question Answer
+  // 2. Advance to Next Round (Round 2 or Round 3)
+  const handleAdvanceNextRound = (nextRoundNum) => {
+    const roundTypes = {
+      1: 'Technical',
+      2: 'System Design',
+      3: 'Behavioral'
+    };
+
+    const nextConfig = {
+      ...(currentConfig || {
+        role: 'Full Stack MERN Developer',
+        level: 'Mid-Level',
+        techStack: ['React', 'Node.js', 'MongoDB'],
+        questionCount: 5
+      }),
+      roundNumber: nextRoundNum,
+      interviewType: roundTypes[nextRoundNum] || 'Technical'
+    };
+
+    handleStartInterview(nextConfig);
+  };
+
+  // 3. Submit Question Answer
   const handleAnswerSubmit = async (answer) => {
     setSubmitting(true);
     setCurrentAnswer(answer);
@@ -165,7 +192,7 @@ export default function App() {
     }
   };
 
-  // 3. Move to next question or show final scorecard
+  // 4. Move to next question or show final scorecard
   const handleNextQuestion = () => {
     const totalQuestions = interviewData?.questions?.length || 0;
     if (currentQuestionIndex + 1 < totalQuestions) {
@@ -178,7 +205,7 @@ export default function App() {
     }
   };
 
-  // 4. Retake / Reset session
+  // 5. Retake / Reset session
   const handleResetInterview = () => {
     setSessionStage('setup');
     setInterviewData(null);
@@ -188,7 +215,7 @@ export default function App() {
     setCurrentFeedback(null);
   };
 
-  // 5. Credit Top-up success
+  // 6. Credit Top-up success
   const handleCreditSuccess = (creditsAdded) => {
     setUser(prev => prev ? { ...prev, credits: (prev.credits || 0) + creditsAdded } : null);
     showToast(`Successfully added ${creditsAdded} AI credits to your account!`);
@@ -275,6 +302,7 @@ export default function App() {
                 onStartInterview={handleStartInterview}
                 loading={loading}
                 userCredits={user?.credits || 100}
+                initialRound={currentRound}
               />
             )}
 
@@ -303,7 +331,9 @@ export default function App() {
               <FinalReport
                 interviewData={interviewData}
                 evaluations={evaluations}
+                currentRound={currentRound}
                 onRetake={handleResetInterview}
+                onAdvanceNextRound={handleAdvanceNextRound}
                 onGoHome={() => {
                   setSessionStage('setup');
                   setActiveTab('interview');
