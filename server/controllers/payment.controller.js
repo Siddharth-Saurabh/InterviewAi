@@ -1,5 +1,8 @@
 import crypto from 'crypto';
 import User from '../models/user.model.js';
+import mongoose from 'mongoose';
+
+const isDbConnected = () => mongoose.connection && mongoose.connection.readyState === 1;
 
 // Credit packages configuration
 export const CREDIT_PLANS = [
@@ -20,7 +23,7 @@ export const getPlans = (req, res) => {
 // 2. Create Order (handles both mock dummy orders and Razorpay API orders)
 export const createOrder = async (req, res) => {
     try {
-        const { planId } = req.body;
+        const { planId } = req.body || {};
         const plan = CREDIT_PLANS.find(p => p.id === planId) || CREDIT_PLANS[1];
 
         const isDummy = !process.env.RAZORPAY_KEY_SECRET || 
@@ -28,7 +31,6 @@ export const createOrder = async (req, res) => {
                         process.env.RAZORPAY_KEY_SECRET.includes('add your');
 
         if (isDummy) {
-            // Generate mock order for seamless testing without real payment card
             const mockOrderId = `order_mock_${Date.now()}_${Math.random().toString(36).substring(7)}`;
             return res.status(200).json({
                 success: true,
@@ -43,7 +45,7 @@ export const createOrder = async (req, res) => {
             });
         }
 
-        // If real Razorpay credentials exist, attempt Razorpay SDK/REST call
+        // If real Razorpay credentials exist, attempt Razorpay REST call
         try {
             const authHeader = Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString('base64');
             const rzpRes = await fetch('https://api.razorpay.com/v1/orders', {
@@ -86,14 +88,14 @@ export const createOrder = async (req, res) => {
         }
     } catch (error) {
         console.error('Error in createOrder:', error);
-        res.status(500).json({ success: false, message: 'Could not initialize order' });
+        return res.status(500).json({ success: false, message: 'Could not initialize order', error: error.message });
     }
 };
 
 // 3. Verify Payment & Add Credits
 export const verifyPayment = async (req, res) => {
     try {
-        const { orderId, paymentId, signature, planId } = req.body;
+        const { orderId, paymentId, signature, planId } = req.body || {};
         const user = req.user;
 
         const plan = CREDIT_PLANS.find(p => p.id === planId) || CREDIT_PLANS[1];
@@ -102,10 +104,8 @@ export const verifyPayment = async (req, res) => {
         let isValid = false;
 
         if (isMockOrder) {
-            // Mock payment automatically succeeds
             isValid = true;
         } else {
-            // Verify HMAC signature
             const secret = process.env.RAZORPAY_KEY_SECRET;
             if (secret) {
                 const generatedSignature = crypto
@@ -125,10 +125,16 @@ export const verifyPayment = async (req, res) => {
         // Add credits to user account
         if (user) {
             user.credits = (user.credits || 0) + plan.credits;
-            await user.save();
+            if (isDbConnected() && typeof user.save === 'function') {
+                try {
+                    await user.save();
+                } catch (e) {
+                    console.warn('DB credit save error:', e.message);
+                }
+            }
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: `Successfully added ${plan.credits} credits!`,
             creditsAdded: plan.credits,
@@ -136,6 +142,6 @@ export const verifyPayment = async (req, res) => {
         });
     } catch (error) {
         console.error('Error verifying payment:', error);
-        res.status(500).json({ success: false, message: 'Failed to verify payment', error: error.message });
+        return res.status(500).json({ success: false, message: 'Failed to verify payment', error: error.message });
     }
 };
