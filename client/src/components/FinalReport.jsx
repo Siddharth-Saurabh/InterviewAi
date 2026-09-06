@@ -6,15 +6,14 @@ import {
   RotateCcw, 
   CheckCircle, 
   BarChart3, 
-  Layers, 
-  Share2, 
   Download, 
-  Flame, 
+  Printer,
   Home, 
   ArrowRight, 
-  ShieldCheck, 
-  Award,
-  Crown
+  Crown,
+  CheckCircle2,
+  AlertCircle,
+  BookOpen
 } from 'lucide-react';
 
 export default function FinalReport({ 
@@ -48,6 +47,10 @@ export default function FinalReport({
 
   const readiness = getReadinessLevel(averageScore);
 
+  // Aggregate Key Strengths and Improvements
+  const allStrengths = evaluations.flatMap(e => e.strengths || []).filter(Boolean);
+  const allImprovements = evaluations.flatMap(e => e.improvements || []).filter(Boolean);
+
   // Next round details
   const getNextRoundInfo = () => {
     if (currentRound === 1) {
@@ -71,7 +74,7 @@ export default function FinalReport({
 
   const nextRound = getNextRoundInfo();
 
-  // Export report
+  // Export report as markdown
   const handleDownloadReport = () => {
     let reportContent = `# InterviewAI Scorecard Report\n`;
     reportContent += `**Role:** ${interviewData?.title || 'Software Engineer'}\n`;
@@ -103,6 +106,11 @@ export default function FinalReport({
     a.download = `InterviewAI_Round${currentRound}_Report_${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Print/Save PDF
+  const handlePrintReport = () => {
+    window.print();
   };
 
   return (
@@ -214,44 +222,99 @@ export default function FinalReport({
         </div>
       )}
 
-      {/* Per-Question Review List */}
+      {/* Aggregated Strengths vs Growth Areas Summary */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 28 }}>
+        <div className="glass-panel" style={{ padding: '22px 26px', borderLeft: '4px solid #10b981' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <CheckCircle2 size={18} /> Key Candidate Strengths
+          </h3>
+          <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {(allStrengths.length > 0 ? allStrengths : ['Demonstrated clear architectural comprehension.', 'Solid technical phrasing and domain vocabulary.']).map((str, sIdx) => (
+              <li key={sIdx} style={{ fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.5 }}>
+                {str}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '22px 26px', borderLeft: '4px solid #fbbf24' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <AlertCircle size={18} /> Recommended Areas of Focus
+          </h3>
+          <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {(allImprovements.length > 0 ? allImprovements : ['Include concrete real-world metrics and load benchmarks.', 'Explain fault-tolerance and error resilience scenarios explicitly.']).map((imp, iIdx) => (
+              <li key={iIdx} style={{ fontSize: '0.85rem', color: '#e2e8f0', lineHeight: 1.5 }}>
+                {imp}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Per-Question Review List Header & Actions */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <h3 style={{ fontSize: '1.3rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
           <BarChart3 size={20} color="#6366f1" />
-          Round {currentRound} Question-by-Question Breakdown
+          Round {currentRound} Detailed Question Evaluation
         </h3>
 
-        <button
-          onClick={handleDownloadReport}
-          className="secondary-btn"
-          style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '0.85rem' }}
-        >
-          <Download size={15} />
-          <span>Export Scorecard (.md)</span>
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={handlePrintReport}
+            className="secondary-btn"
+            style={{ padding: '8px 14px', borderRadius: '10px', fontSize: '0.85rem' }}
+          >
+            <Printer size={15} />
+            <span>Print PDF</span>
+          </button>
+          
+          <button
+            onClick={handleDownloadReport}
+            className="secondary-btn"
+            style={{ padding: '8px 14px', borderRadius: '10px', fontSize: '0.85rem' }}
+          >
+            <Download size={15} />
+            <span>Export (.md)</span>
+          </button>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 36 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 36 }}>
         {evaluations.map((ev, idx) => {
           const q = interviewData?.questions?.[idx] || {};
           return (
-            <div key={idx} className="glass-panel" style={{ padding: '20px 24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span className="badge badge-primary">Q{idx + 1} • {q.category || 'Technical'}</span>
+            <div key={idx} className="glass-panel" style={{ padding: '24px 28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                <span className="badge badge-primary">Question {idx + 1} • {q.category || 'Technical'}</span>
                 <span style={{ 
                   fontWeight: 800, 
                   color: (ev.score || 7) >= 8 ? '#10b981' : '#fbbf24',
-                  fontSize: '1rem' 
+                  fontSize: '1.05rem' 
                 }}>
                   Score: {ev.score || 7}/10
                 </span>
               </div>
-              <h4 style={{ fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: 10 }}>
+
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#fff', marginBottom: 12 }}>
                 {q.question}
               </h4>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5, background: 'rgba(0,0,0,0.2)', padding: '10px 14px', borderRadius: '8px' }}>
-                💡 <strong>Evaluation:</strong> {ev.summary || 'Solid conceptual answers demonstrated with room for deeper optimization examples.'}
-              </p>
+
+              <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px 18px', borderRadius: '10px', marginBottom: 14 }}>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  💡 <strong>Interviewer Summary:</strong> {ev.summary || 'Solid conceptual answers demonstrated with room for deeper optimization examples.'}
+                </p>
+              </div>
+
+              {ev.idealAnswer && (
+                <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '14px 18px', borderRadius: '10px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <BookOpen size={14} /> 10/10 Benchmark Solution Architecture:
+                  </span>
+                  <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+                    {ev.idealAnswer}
+                  </p>
+                </div>
+              )}
             </div>
           );
         })}
