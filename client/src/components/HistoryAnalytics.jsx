@@ -12,7 +12,8 @@ import {
   TrendingUp,
   Target,
   BarChart2,
-  CheckCircle2
+  RotateCcw,
+  RefreshCw
 } from 'lucide-react';
 
 export default function HistoryAnalytics({ user, apiUrl }) {
@@ -48,6 +49,7 @@ export default function HistoryAnalytics({ user, apiUrl }) {
       setLoading(false);
     }
   };
+
 
   const handleDeleteSession = async (e, id) => {
     e.stopPropagation();
@@ -90,18 +92,31 @@ export default function HistoryAnalytics({ user, apiUrl }) {
   return (
     <div className="container" style={{ maxWidth: 1040, paddingBottom: 80 }}>
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <div className="badge badge-primary" style={{ marginBottom: 8 }}>
-          <History size={14} color="#818cf8" />
-          <span>Performance Record & Analytics</span>
+      <div style={{ marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+        <div>
+          <div className="badge badge-primary" style={{ marginBottom: 8 }}>
+            <History size={14} color="#818cf8" />
+            <span>Performance Record & Analytics</span>
+          </div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>
+            Your Mock Interview Analytics
+          </h1>
+          <p style={{ color: 'var(--text-muted)' }}>
+            Track past performance scores, benchmark progression across hiring rounds, and inspect question feedback.
+          </p>
         </div>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>
-          Your Mock Interview Analytics
-        </h1>
-        <p style={{ color: 'var(--text-muted)' }}>
-          Track past performance scores, benchmark progression across hiring rounds, and inspect question feedback.
-        </p>
+
+        <button
+          onClick={fetchHistory}
+          className="secondary-btn"
+          style={{ padding: '8px 16px', borderRadius: '10px', fontSize: '0.85rem' }}
+          title="Reload session history"
+        >
+          <RefreshCw size={15} className={loading ? "spin-icon" : ""} />
+          <span>Refresh History</span>
+        </button>
       </div>
+
 
       {/* Overview Analytics Stat Cards */}
       <div style={{ 

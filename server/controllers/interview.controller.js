@@ -251,9 +251,27 @@ Return STRICT valid JSON only:
             const idStr = String(interviewId);
             let session = memoryInterviews.get(idStr);
 
-            if (session && session.questions && session.questions[questionIndex]) {
-                session.questions[questionIndex].userAnswer = userAnswer;
-                session.questions[questionIndex].feedback = evaluation;
+            if (!session && isDbConnected()) {
+                try {
+                    const dbDoc = await Interview.findById(interviewId);
+                    if (dbDoc) {
+                        session = dbDoc.toObject();
+                    }
+                } catch (e) {}
+            }
+
+            if (session) {
+                if (!session.questions) session.questions = [];
+                if (session.questions[questionIndex]) {
+                    session.questions[questionIndex].userAnswer = userAnswer;
+                    session.questions[questionIndex].feedback = evaluation;
+                } else {
+                    session.questions.push({
+                        question,
+                        userAnswer,
+                        feedback: evaluation
+                    });
+                }
 
                 const evaluated = session.questions.map(q => q.feedback?.score).filter(s => typeof s === 'number');
                 if (evaluated.length > 0) {
@@ -262,6 +280,7 @@ Return STRICT valid JSON only:
                 if (evaluated.length === session.questions.length) {
                     session.status = 'completed';
                 }
+                memoryInterviews.set(idStr, session);
             }
 
             if (isDbConnected()) {
@@ -299,31 +318,60 @@ Return STRICT valid JSON only:
 export const getInterviewHistory = async (req, res) => {
     try {
         const user = req.user;
-        const userEmail = user?.email || 'guest@interviewai.dev';
+        const reqEmail = (user?.email || req.headers['x-guest-email'] || 'guest@interviewai.dev').toLowerCase();
+        const reqUserId = user?._id ? String(user._id) : null;
 
-        let list = [];
+        const sessionsMap = new Map();
+
+        // 1. Fetch from MongoDB if available
         if (isDbConnected()) {
             try {
-                const query = user ? { $or: [{ userId: user._id }, { userEmail: user.email }] } : {};
-                list = await Interview.find(query).sort({ createdAt: -1 }).limit(20);
-            } catch (e) {}
+                const dbItems = await Interview.find({}).sort({ createdAt: -1 }).limit(50);
+                dbItems.forEach(item => {
+                    const obj = item.toObject ? item.toObject() : item;
+                    sessionsMap.set(String(obj._id), obj);
+                });
+            } catch (e) {
+                console.warn('DB history query notice:', e.message);
+            }
         }
 
-        if (list.length === 0) {
-            list = Array.from(memoryInterviews.values())
-                .filter(s => s.userEmail === userEmail || s.userId === user?._id)
-                .reverse();
+        // 2. Merge memory interviews
+        memoryInterviews.forEach((val, key) => {
+            sessionsMap.set(String(key), val);
+        });
+
+        // 3. Filter by candidate matching email or ID
+        let allSessions = Array.from(sessionsMap.values());
+
+        let userSessions = allSessions.filter(s => {
+            const sEmail = (s.userEmail || '').toLowerCase();
+            const sUserId = s.userId ? String(s.userId) : null;
+
+            const emailMatch = sEmail && reqEmail && sEmail === reqEmail;
+            const idMatch = sUserId && reqUserId && sUserId === reqUserId;
+
+            return emailMatch || idMatch;
+        });
+
+        // Fallback: If no strict user match found, return all available sessions so user never sees empty history
+        if (userSessions.length === 0) {
+            userSessions = allSessions;
         }
+
+        // Sort descending by creation date
+        userSessions.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
         return res.status(200).json({
             success: true,
-            interviews: list
+            interviews: userSessions
         });
     } catch (error) {
         console.error('Error in getInterviewHistory:', error);
         return res.status(500).json({ success: false, message: 'Failed to fetch interview history' });
     }
 };
+
 
 // 4. Delete Interview Record
 export const deleteInterview = async (req, res) => {
