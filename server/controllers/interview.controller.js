@@ -324,3 +324,32 @@ export const getInterviewHistory = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Failed to fetch interview history' });
     }
 };
+
+// 4. Delete Interview Record
+export const deleteInterview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ success: false, message: 'Interview ID is required' });
+        }
+
+        memoryInterviews.delete(String(id));
+
+        if (isDbConnected()) {
+            try {
+                await Interview.findByIdAndDelete(id);
+            } catch (e) {
+                console.warn('MongoDB delete notice:', e.message);
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Interview session deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error in deleteInterview:', error);
+        return res.status(500).json({ success: false, message: 'Failed to delete interview session' });
+    }
+};
+
