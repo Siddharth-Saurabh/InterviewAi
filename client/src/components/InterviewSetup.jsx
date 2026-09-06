@@ -27,6 +27,38 @@ const POPULAR_ROLES = [
   'Product Manager (Tech)'
 ];
 
+const PRESET_TEMPLATES = [
+  {
+    name: '🚀 MERN Stack Mastery',
+    role: 'Full Stack MERN Developer',
+    level: 'Mid-Level',
+    tech: ['React', 'Node.js', 'MongoDB', 'Express', 'TypeScript'],
+    round: 1
+  },
+  {
+    name: '⚡ Distributed Systems Architect',
+    role: 'System Design & Architecture',
+    level: 'Senior',
+    tech: ['Docker', 'AWS', 'Redis', 'PostgreSQL', 'GraphQL'],
+    round: 2
+  },
+  {
+    name: '🎨 Modern Frontend Specialist',
+    role: 'Frontend React Engineer',
+    level: 'Mid-Level',
+    tech: ['React', 'TypeScript', 'Next.js', 'TailwindCSS'],
+    round: 1
+  },
+  {
+    name: '👑 Executive Bar Raiser',
+    role: 'Product Manager (Tech)',
+    level: 'Senior',
+    tech: ['Agile', 'System Metrics', 'STAR Framework'],
+    round: 3
+  }
+];
+
+
 const EXPERIENCE_LEVELS = [
   { id: 'Junior', label: 'Junior (0-2 Yrs)', desc: 'Fundamentals, syntax, and core problem solving' },
   { id: 'Mid-Level', label: 'Mid-Level (2-5 Yrs)', desc: 'System design, optimization, and project trade-offs' },
@@ -145,6 +177,43 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
         overflow: 'hidden'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+          {/* Quick Presets */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 12, fontSize: '1.05rem', color: '#818cf8' }}>
+              <Zap size={18} color="#818cf8" />
+              Quick 1-Click Interview Presets
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+              {PRESET_TEMPLATES.map((preset, pIdx) => (
+                <button
+                  key={pIdx}
+                  type="button"
+                  onClick={() => {
+                    setRole(preset.role);
+                    setCustomRole('');
+                    setLevel(preset.level);
+                    setSelectedRound(preset.round);
+                    setSelectedTech(preset.tech);
+                  }}
+                  className="secondary-btn"
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{preset.name}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{preset.role} • {preset.level}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
 
           {/* 1. Interview Stage / Round Selector */}
           <div>
