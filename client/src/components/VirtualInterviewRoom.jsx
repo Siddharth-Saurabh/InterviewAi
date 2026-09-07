@@ -273,6 +273,25 @@ export default function VirtualInterviewRoom({
     setTranscript(prev => (prev ? `${prev}\n\n${template}` : template));
   };
 
+  // Keyboard Shortcuts (Ctrl+Enter to submit, Alt+R to replay, Alt+H for hint)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSubmitAnswer();
+      } else if (e.altKey && (e.key === 'r' || e.key === 'R')) {
+        e.preventDefault();
+        handleReplayQuestion();
+      } else if (e.altKey && (e.key === 'h' || e.key === 'H')) {
+        e.preventDefault();
+        setShowHint(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [transcript, submitting, currentQuestion]);
+
   // Handle Submission
   const handleSubmitAnswer = (answerToSubmit) => {
     const finalAnswer = (answerToSubmit || transcript).trim();
@@ -843,8 +862,21 @@ export default function VirtualInterviewRoom({
           </button>
         </div>
 
-        {/* Submit Action Button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+        {/* Submit Action Button & Shortcuts Helper */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          gap: 12,
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Shortcuts:</span>
+            <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>Ctrl + Enter: Submit</span>
+            <span className="badge badge-cyan" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>Alt + R: Replay</span>
+            <span className="badge badge-amber" style={{ fontSize: '0.65rem', padding: '2px 6px' }}>Alt + H: Hint</span>
+          </div>
+
           <button
             type="button"
             onClick={() => handleSubmitAnswer()}
