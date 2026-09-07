@@ -106,12 +106,11 @@ export default function Navbar({
             className="token-badge-pill"
             type="button"
           >
-            <Coins size={16} color="#fbbf24" />
+            <Coins size={17} color="#fbbf24" />
             <span className="token-amount">
               {user ? user.credits : 100}
             </span>
             <span className="token-label">Tokens</span>
-            <Plus size={12} color="#fbbf24" style={{ marginLeft: 2, opacity: 0.8 }} />
           </button>
 
           {/* User Sign in / Profile */}
@@ -132,7 +131,7 @@ export default function Navbar({
                 type="button"
                 aria-label="Log Out"
               >
-                <LogOut size={15} color="var(--text-muted)" />
+                <LogOut size={16} color="var(--text-muted)" />
               </button>
             </div>
           ) : (
@@ -141,7 +140,7 @@ export default function Navbar({
               className="glow-btn navbar-signin-btn"
               type="button"
             >
-              <UserIcon size={15} />
+              <UserIcon size={16} />
               <span>Sign In</span>
             </button>
           )}
