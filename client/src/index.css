@@ -253,62 +253,40 @@ h1, h2, h3, h4, h5 {
 }
 
 .desktop-nav {
-  display: flex !important;
+  display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .mobile-menu-btn {
-  display: none !important;
+  display: none;
+}
+
+.main-navbar {
+  padding: 12px 24px;
 }
 
 @media (max-width: 768px) {
+  .main-navbar {
+    padding: 10px 14px;
+    margin: 8px auto 16px auto;
+  }
+
   .container {
-    padding: 0 12px;
+    padding: 0 14px;
   }
 
   .desktop-nav {
-    display: none !important;
+    display: none;
   }
 
   .mobile-menu-btn {
-    display: inline-flex !important;
-  }
-
-  .glass-panel {
-    padding: 20px 16px !important;
-    border-radius: var(--radius-md) !important;
+    display: inline-flex;
   }
 
   h1 {
-    font-size: 1.85rem !important;
-  }
-
-  h2 {
-    font-size: 1.25rem !important;
-  }
-
-  h3 {
-    font-size: 1.05rem !important;
-  }
-
-  .glow-btn {
-    width: 100%;
-    padding: 12px 18px !important;
-  }
-
-  .secondary-btn {
-    padding: 8px 14px !important;
+    font-size: 2rem !important;
   }
 }
 
-@media (max-width: 480px) {
-  .container {
-    padding: 0 8px;
-  }
-
-  .glass-panel {
-    padding: 16px 12px !important;
-  }
-}
 

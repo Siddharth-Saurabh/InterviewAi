@@ -23,14 +23,13 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="glass-panel" style={{ 
+    <header className="glass-panel main-navbar" style={{ 
       position: 'sticky', 
       top: 16, 
       zIndex: 100, 
       margin: '12px auto 24px auto',
       maxWidth: '1240px',
-      borderRadius: '16px',
-      padding: '12px 24px'
+      borderRadius: '16px'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         
@@ -81,7 +80,7 @@ export default function Navbar({
         </div>
 
         {/* Desktop Nav Tabs */}
-        <nav style={{ display: 'none', md: 'flex', gap: 8 }} className="desktop-nav">
+        <nav className="desktop-nav" style={{ gap: 8 }}>
           <button 
             onClick={() => setActiveTab('interview')}
             style={{
