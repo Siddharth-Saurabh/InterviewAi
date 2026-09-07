@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Trophy, 
@@ -19,7 +19,9 @@ import {
   Activity,
   UserCheck,
   Zap,
-  Award
+  Award,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export default function FinalReport({ 
@@ -32,6 +34,14 @@ export default function FinalReport({
   onAdvanceNextRound,
   currentRound = 1 
 }) {
+  const [copiedIdx, setCopiedIdx] = useState(null);
+
+  const handleCopyBenchmark = (text, idx) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
   useEffect(() => {
     try {
       confetti({
@@ -386,11 +396,32 @@ export default function FinalReport({
               </div>
 
               {ev.idealAnswer && (
-                <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '14px 18px', borderRadius: '10px', marginBottom: 10 }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <BookOpen size={14} /> 10/10 Benchmark Solution Architecture:
-                  </span>
-                  <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+                <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '16px 20px', borderRadius: '12px', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <BookOpen size={14} /> 10/10 Benchmark Model Architecture:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyBenchmark(ev.idealAnswer, idx)}
+                      className="secondary-btn"
+                      style={{ padding: '3px 8px', fontSize: '0.72rem', borderRadius: '6px' }}
+                      title="Copy benchmark solution to clipboard"
+                    >
+                      {copiedIdx === idx ? (
+                        <>
+                          <Check size={12} color="#10b981" />
+                          <span style={{ color: '#10b981' }}>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
                     {ev.idealAnswer}
                   </p>
                 </div>
