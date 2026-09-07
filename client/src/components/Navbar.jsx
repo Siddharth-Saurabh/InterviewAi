@@ -9,7 +9,8 @@ import {
   Menu, 
   X,
   CreditCard,
-  Zap
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -20,16 +21,20 @@ export default function Navbar({
   onOpenAuth, 
   onLogout 
 }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="glass-panel main-navbar" style={{ 
+    <header className="glass-panel" style={{ 
       position: 'sticky', 
       top: 16, 
       zIndex: 100, 
       margin: '12px auto 24px auto',
       maxWidth: '1240px',
-      borderRadius: '16px'
+      borderRadius: '16px',
+      padding: '12px 20px',
+      backdropFilter: 'blur(20px)',
+      background: 'rgba(15, 22, 36, 0.85)',
+      border: '1px solid rgba(255, 255, 255, 0.08)'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         
@@ -79,110 +84,43 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Desktop Nav Tabs */}
-        <nav className="desktop-nav" style={{ gap: 8 }}>
-          <button 
-            onClick={() => setActiveTab('interview')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'interview' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: activeTab === 'interview' ? '#818cf8' : 'var(--text-muted)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <PlayCircle size={17} />
-            Mock Interview
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('history')}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'history' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: activeTab === 'history' ? '#818cf8' : 'var(--text-muted)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <History size={17} />
-            Past Sessions
-          </button>
-
-          <button 
-            onClick={onOpenPricing}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '10px',
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--text-muted)',
-              cursor: 'pointer',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <CreditCard size={17} />
-            Pricing Plans
-          </button>
-        </nav>
-
-        {/* Action Controls & User Account */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* Live Credits Badge */}
+        {/* Right Controls: Token Badge + Sign In + Burger Menu */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          
+          {/* Clean Token Pill Badge */}
           <div 
             onClick={onOpenPricing}
-            title="Click to get more credits"
+            title="Available Tokens • Click to buy more"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
+              gap: 7,
               background: 'rgba(245, 158, 11, 0.12)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              borderRadius: '12px',
-              padding: '6px 12px',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              borderRadius: '20px',
+              padding: '6px 14px',
               cursor: 'pointer',
-              transition: 'transform 0.2s ease'
+              transition: 'all 0.2s ease'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+            }}
           >
-            <Zap size={16} color="#fbbf24" fill="#fbbf24" />
-            <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}>
+            <Coins size={16} color="#fbbf24" />
+            <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '0.88rem' }}>
               {user ? user.credits : 100}
             </span>
-            <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>credits</span>
-            <span style={{ 
-              background: '#fbbf24', 
-              color: '#000', 
-              fontSize: '0.65rem', 
-              fontWeight: 800, 
-              padding: '1px 5px', 
-              borderRadius: '4px',
-              marginLeft: 2
-            }}>
-              + ADD
-            </span>
+            <span style={{ color: '#94a3b8', fontSize: '0.74rem', fontWeight: 600 }}>Tokens</span>
           </div>
 
           {/* User Sign in / Profile */}
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -193,22 +131,23 @@ export default function Navbar({
                 padding: '6px 12px'
               }}>
                 <div style={{
-                  width: 26,
-                  height: 26,
+                  width: 24,
+                  height: 24,
                   borderRadius: '50%',
                   background: '#6366f1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 700
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  color: '#fff'
                 }}>
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <span style={{ 
-                  fontSize: '0.85rem', 
+                  fontSize: '0.84rem', 
                   fontWeight: 600, 
-                  maxWidth: '100px', 
+                  maxWidth: '90px', 
                   overflow: 'hidden', 
                   textOverflow: 'ellipsis', 
                   whiteSpace: 'nowrap' 
@@ -220,9 +159,9 @@ export default function Navbar({
                 onClick={onLogout}
                 title="Log Out"
                 className="secondary-btn"
-                style={{ padding: '7px 10px', borderRadius: '10px' }}
+                style={{ padding: '7px 9px', borderRadius: '10px' }}
               >
-                <LogOut size={16} color="var(--text-muted)" />
+                <LogOut size={15} color="var(--text-muted)" />
               </button>
             </div>
           ) : (
@@ -232,89 +171,114 @@ export default function Navbar({
               style={{ padding: '7px 16px', fontSize: '0.85rem' }}
             >
               <UserIcon size={15} />
-              Sign In
+              <span>Sign In</span>
             </button>
           )}
 
-          {/* Mobile Menu Toggle */}
+          {/* Burger Menu Button */}
           <button 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="secondary-btn mobile-menu-btn"
-            style={{ padding: '8px', borderRadius: '10px' }}
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="secondary-btn"
+            style={{ 
+              padding: '8px 10px', 
+              borderRadius: '10px',
+              border: menuOpen ? '1px solid #6366f1' : '1px solid var(--border-subtle)',
+              background: menuOpen ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.05)'
+            }}
+            title="Open Navigation Menu"
           >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {menuOpen ? <X size={20} color="#818cf8" /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
+      {/* Slide-Down Navigation Menu Drawer */}
+      {menuOpen && (
         <div style={{ 
-          marginTop: 16, 
-          paddingTop: 16, 
-          borderTop: '1px solid var(--border-subtle)',
+          marginTop: 14, 
+          paddingTop: 14, 
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 10
+          gap: 6
         }}>
           <button 
-            onClick={() => { setActiveTab('interview'); setMobileMenuOpen(false); }}
+            onClick={() => { setActiveTab('interview'); setMenuOpen(false); }}
             style={{
-              padding: '10px 14px',
-              borderRadius: '8px',
+              padding: '12px 16px',
+              borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'interview' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: '#fff',
+              background: activeTab === 'interview' ? 'rgba(99, 102, 241, 0.22)' : 'transparent',
+              color: activeTab === 'interview' ? '#a5b4fc' : '#fff',
               textAlign: 'left',
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              fontSize: '0.95rem'
+              justifyContent: 'space-between',
+              fontSize: '0.92rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease'
             }}
           >
-            <PlayCircle size={18} color="#818cf8" />
-            Mock Interview
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <PlayCircle size={18} color="#818cf8" />
+              <span>Mock Interview</span>
+            </div>
+            <ChevronRight size={16} color="var(--text-dim)" />
           </button>
 
           <button 
-            onClick={() => { setActiveTab('history'); setMobileMenuOpen(false); }}
+            onClick={() => { setActiveTab('history'); setMenuOpen(false); }}
             style={{
-              padding: '10px 14px',
-              borderRadius: '8px',
+              padding: '12px 16px',
+              borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'history' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-              color: '#fff',
+              background: activeTab === 'history' ? 'rgba(99, 102, 241, 0.22)' : 'transparent',
+              color: activeTab === 'history' ? '#a5b4fc' : '#fff',
               textAlign: 'left',
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              fontSize: '0.95rem'
+              justifyContent: 'space-between',
+              fontSize: '0.92rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease'
             }}
           >
-            <History size={18} color="#818cf8" />
-            Past Sessions & Scorecards
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <History size={18} color="#06b6d4" />
+              <span>Past Sessions & Scorecards</span>
+            </div>
+            <ChevronRight size={16} color="var(--text-dim)" />
           </button>
 
           <button 
-            onClick={() => { onOpenPricing(); setMobileMenuOpen(false); }}
+            onClick={() => { onOpenPricing(); setMenuOpen(false); }}
             style={{
-              padding: '10px 14px',
-              borderRadius: '8px',
+              padding: '12px 16px',
+              borderRadius: '10px',
               border: 'none',
               background: 'transparent',
               color: '#fff',
               textAlign: 'left',
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              fontSize: '0.95rem'
+              justifyContent: 'space-between',
+              fontSize: '0.92rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease'
             }}
           >
-            <CreditCard size={18} color="#fbbf24" />
-            Pricing & Buy Credits
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <CreditCard size={18} color="#fbbf24" />
+              <span>Pricing Plans & Buy Tokens</span>
+            </div>
+            <ChevronRight size={16} color="var(--text-dim)" />
           </button>
         </div>
       )}
     </header>
   );
 }
+
