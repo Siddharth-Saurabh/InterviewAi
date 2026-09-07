@@ -153,9 +153,9 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
   };
 
   return (
-    <div className="container" style={{ paddingBottom: 60, maxWidth: 1040 }}>
+    <div className="container" style={{ paddingBottom: 60 }}>
       {/* Hero Header */}
-      <div style={{ textAlign: 'center', maxWidth: 840, margin: '0 auto 40px auto' }}>
+      <div style={{ textAlign: 'center', maxWidth: 960, margin: '0 auto 40px auto' }}>
         <div className="badge badge-primary" style={{ marginBottom: 16, padding: '6px 16px', fontSize: '0.8rem' }}>
           <Sparkles size={15} color="#a5b4fc" />
           <span>Full Multi-Round Tech Hiring Pipeline Simulator</span>
@@ -176,7 +176,7 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
             From Screening to Offer Letter
           </span>
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: 1.65, maxWidth: 680, margin: '0 auto' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: 1.65, maxWidth: 780, margin: '0 auto' }}>
           Choose between an interactive Voice-Powered Virtual AI Interview or a Classical Structured Text Coding assessment with real-time AI scoring and 10/10 model benchmark answers.
         </p>
       </div>
@@ -200,7 +200,7 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
               </label>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Instant Pre-configured Tracks</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
               {PRESET_TEMPLATES.map((preset, pIdx) => (
                 <button
                   key={pIdx}
@@ -214,21 +214,21 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
                   }}
                   className="secondary-btn"
                   style={{
-                    padding: '12px 14px',
+                    padding: '14px 16px',
                     borderRadius: '14px',
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 6,
+                    gap: 8,
                     alignItems: 'flex-start',
                     background: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.08)'
                   }}
                 >
-                  <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#fff' }}>{preset.name}</span>
+                  <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#fff' }}>{preset.name}</span>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
-                    <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Round {preset.round}</span>
-                    <span className="badge badge-cyan" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{preset.level}</span>
+                    <span className="badge badge-primary" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>Round {preset.round}</span>
+                    <span className="badge badge-cyan" style={{ fontSize: '0.68rem', padding: '3px 8px' }}>{preset.level}</span>
                   </div>
                 </button>
               ))}
@@ -241,7 +241,7 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
               <Sparkles size={19} color="#6366f1" />
               1. Choose Interview Experience Mode
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
               
               {/* Virtual AI Mode */}
               <div

@@ -328,7 +328,7 @@ export default function VirtualInterviewRoom({
   const currentWordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="container" style={{ maxWidth: 1040, paddingBottom: 60 }}>
+    <div className="container" style={{ paddingBottom: 60 }}>
       {/* Top Header Controls */}
       <div style={{ 
         display: 'flex', 

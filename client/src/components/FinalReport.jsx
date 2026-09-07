@@ -163,7 +163,7 @@ export default function FinalReport({
   };
 
   return (
-    <div className="container" style={{ maxWidth: 1000, paddingBottom: 80 }}>
+    <div className="container" style={{ paddingBottom: 80 }}>
       {/* Top Banner Card */}
       <div className="glass-panel" style={{ 
         padding: '40px 36px', 

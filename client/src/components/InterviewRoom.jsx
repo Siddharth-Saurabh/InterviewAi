@@ -157,7 +157,7 @@ export default function InterviewRoom({
   const progressPercentage = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
 
   return (
-    <div className="container" style={{ maxWidth: 1000, paddingBottom: 60 }}>
+    <div className="container" style={{ paddingBottom: 60 }}>
       {/* Top Header Bar */}
       <div style={{ 
         display: 'flex', 

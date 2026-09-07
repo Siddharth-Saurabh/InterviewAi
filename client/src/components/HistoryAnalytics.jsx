@@ -90,7 +90,7 @@ export default function HistoryAnalytics({ user, apiUrl }) {
   });
 
   return (
-    <div className="container" style={{ maxWidth: 1040, paddingBottom: 80 }}>
+    <div className="container" style={{ paddingBottom: 80 }}>
       {/* Header */}
       <div style={{ marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
         <div>

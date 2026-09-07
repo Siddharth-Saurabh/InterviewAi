@@ -26,7 +26,7 @@ export default function AnswerFeedback({
   };
 
   return (
-    <div className="container" style={{ maxWidth: 1000, paddingBottom: 60 }}>
+    <div className="container" style={{ paddingBottom: 60 }}>
       {/* Score Header Card */}
       <div className="glass-panel" style={{ 
         padding: '30px 36px', 

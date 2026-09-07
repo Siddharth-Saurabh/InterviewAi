@@ -71,6 +71,24 @@ body {
   background: rgba(99, 102, 241, 0.4);
 }
 
+/* Base Layout Container */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1360px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
 /* Headings */
 h1, h2, h3, h4, h5 {
   font-family: var(--font-heading);
