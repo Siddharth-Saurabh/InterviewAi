@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition.js';
 import { useTextToSpeech } from '../hooks/useTextToSpeech.js';
+import { soundFX } from '../utils/soundEffects.js';
 
 // Common verbal filler words for speaking clarity analytics
 const COMMON_FILLER_WORDS = ['um', 'uh', 'like', 'basically', 'actually', 'you know', 'sort of', 'kind of', 'literally'];
@@ -188,9 +189,11 @@ export default function VirtualInterviewRoom({
     }
 
     if (isListening) {
+      soundFX.playMicStop();
       stopListening();
       setInterviewState(INTERVIEW_STATES.READY);
     } else {
+      soundFX.playMicStart();
       startListening();
       setInterviewState(INTERVIEW_STATES.LISTENING);
     }
@@ -228,6 +231,7 @@ export default function VirtualInterviewRoom({
     const finalAnswer = (answerToSubmit || transcript).trim();
     if (!finalAnswer) return;
 
+    soundFX.playSuccessChime();
     stopSpeaking();
     stopListening();
     setInterviewState(INTERVIEW_STATES.EVALUATING);
