@@ -244,44 +244,95 @@ h1, h2, h3, h4, h5 {
   border: 1px solid rgba(244, 63, 94, 0.35);
 }
 
-/* Responsive Grid & Containers */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-  width: 100%;
+/* Responsive App Navbar */
+.app-navbar {
+  position: sticky;
+  top: 16px;
+  z-index: 100;
+  margin: 16px auto 32px auto;
+  max-width: 1240px;
+  border-radius: 18px;
+  padding: 14px 28px;
+  backdrop-filter: blur(20px);
+  background: rgba(15, 22, 36, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s ease;
 }
 
-.desktop-nav {
+.navbar-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.token-badge-pill {
   display: flex;
   align-items: center;
   gap: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-.mobile-menu-btn {
-  display: none;
+.token-badge-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
 }
 
-.main-navbar {
-  padding: 12px 24px;
+.user-profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 6px 14px;
+}
+
+.user-profile-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
-  .main-navbar {
+  .app-navbar {
+    top: 8px;
+    margin: 8px 10px 20px 10px;
     padding: 10px 14px;
-    margin: 8px auto 16px auto;
+    border-radius: 14px;
+  }
+
+  .navbar-right-controls {
+    gap: 8px;
+  }
+
+  .token-badge-pill {
+    padding: 5px 10px;
+    gap: 5px;
+    font-size: 0.8rem;
+  }
+
+  .user-profile-chip {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .user-profile-name {
+    display: none;
   }
 
   .container {
     padding: 0 14px;
-  }
-
-  .desktop-nav {
-    display: none;
-  }
-
-  .mobile-menu-btn {
-    display: inline-flex;
   }
 
   h1 {

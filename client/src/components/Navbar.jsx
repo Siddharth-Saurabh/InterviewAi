@@ -24,29 +24,18 @@ export default function Navbar({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="glass-panel" style={{ 
-      position: 'sticky', 
-      top: 16, 
-      zIndex: 100, 
-      margin: '12px auto 24px auto',
-      maxWidth: '1240px',
-      borderRadius: '16px',
-      padding: '12px 20px',
-      backdropFilter: 'blur(20px)',
-      background: 'rgba(15, 22, 36, 0.85)',
-      border: '1px solid rgba(255, 255, 255, 0.08)'
-    }}>
+    <header className="app-navbar">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         
         {/* Logo */}
         <div 
           onClick={() => setActiveTab('interview')}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
         >
           <div style={{ 
-            width: 38, 
-            height: 38, 
-            borderRadius: '10px', 
+            width: 40, 
+            height: 40, 
+            borderRadius: '12px', 
             background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
             display: 'flex',
             alignItems: 'center',
@@ -62,7 +51,9 @@ export default function Navbar({
               letterSpacing: '-0.02em',
               background: 'linear-gradient(to right, #fff, #94a3b8)',
               WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              WebkitTextFillColor: 'transparent',
+              display: 'block',
+              lineHeight: 1.2
             }}>
               Interview<span style={{ 
                 background: 'linear-gradient(to right, #6366f1, #06b6d4)',
@@ -74,7 +65,6 @@ export default function Navbar({
               fontSize: '0.65rem', 
               display: 'block', 
               color: 'var(--accent-cyan)',
-              marginTop: -4,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               fontWeight: 700
@@ -85,73 +75,40 @@ export default function Navbar({
         </div>
 
         {/* Right Controls: Token Badge + Sign In + Burger Menu */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="navbar-right-controls">
           
           {/* Clean Token Pill Badge */}
           <div 
             onClick={onOpenPricing}
             title="Available Tokens • Click to buy more"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 7,
-              background: 'rgba(245, 158, 11, 0.12)',
-              border: '1px solid rgba(245, 158, 11, 0.35)',
-              borderRadius: '20px',
-              padding: '6px 14px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.6)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.35)';
-            }}
+            className="token-badge-pill"
           >
-            <Coins size={16} color="#fbbf24" />
-            <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '0.88rem' }}>
+            <Coins size={17} color="#fbbf24" />
+            <span style={{ color: '#fbbf24', fontWeight: 800, fontSize: '0.9rem' }}>
               {user ? user.credits : 100}
             </span>
-            <span style={{ color: '#94a3b8', fontSize: '0.74rem', fontWeight: 600 }}>Tokens</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600 }}>Tokens</span>
           </div>
 
           {/* User Sign in / Profile */}
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '12px',
-                padding: '6px 12px'
-              }}>
+              <div className="user-profile-chip">
                 <div style={{
-                  width: 24,
-                  height: 24,
+                  width: 26,
+                  height: 26,
                   borderRadius: '50%',
                   background: '#6366f1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.72rem',
+                  fontSize: '0.75rem',
                   fontWeight: 700,
                   color: '#fff'
                 }}>
                   {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
-                <span style={{ 
-                  fontSize: '0.84rem', 
-                  fontWeight: 600, 
-                  maxWidth: '90px', 
-                  overflow: 'hidden', 
-                  textOverflow: 'ellipsis', 
-                  whiteSpace: 'nowrap' 
-                }}>
+                <span className="user-profile-name">
                   {user.name || user.email?.split('@')[0]}
                 </span>
               </div>
@@ -168,7 +125,7 @@ export default function Navbar({
             <button 
               onClick={onOpenAuth}
               className="glow-btn"
-              style={{ padding: '7px 16px', fontSize: '0.85rem' }}
+              style={{ padding: '8px 18px', fontSize: '0.88rem' }}
             >
               <UserIcon size={15} />
               <span>Sign In</span>
@@ -180,8 +137,8 @@ export default function Navbar({
             onClick={() => setMenuOpen(!menuOpen)}
             className="secondary-btn"
             style={{ 
-              padding: '8px 10px', 
-              borderRadius: '10px',
+              padding: '9px 12px', 
+              borderRadius: '12px',
               border: menuOpen ? '1px solid #6366f1' : '1px solid var(--border-subtle)',
               background: menuOpen ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.05)'
             }}
