@@ -8,17 +8,26 @@
 
 **InterviewAI** is an intelligent, full-stack tech hiring simulator designed to help engineers practice, benchmark, and master technical screening, system design architecture, and behavioral bar raiser rounds.
 
+> 📚 **Complete Architectural Study Guide**: For a comprehensive, step-by-step breakdown of how InterviewAI was built, how each component works, and common interview questions/answers about this architecture, check out [ARCHITECTURE_AND_STUDY_GUIDE.md](file:///c:/Mern%20Stack/InterviewAI/ARCHITECTURE_AND_STUDY_GUIDE.md).
+
 ---
 
 ## 🌟 Key Features & Platform Highlights
 
-### 🎯 1. 3-Stage Multi-Round Hiring Progression Pipeline
+### 🎙️ 1. Virtual AI Interviewer Studio
+- **Audio Voice Synthesis (TTS)**: Web Speech Synthesis dynamically modulates pitch and speech rate across 5 interviewer personas (*Strict*, *Friendly*, *Technical Expert*, *Professional*, *HR*).
+- **Real-Time Speech-to-Text (STT)**: Microphone speech streaming directly into live transcripts.
+- **Candidate Camera Mirror (PIP)**: Real-time HTML5 webcam mirror preview rendered locally with zero server video upload for maximum privacy.
+- **Cadence Analytics HUD**: Live filler word counter (`um`, `uh`, `like`), speaking duration timer, and pace metrics.
+- **Audio Synthesizer FX**: Native Web Audio sound effects for mic activation and evaluation milestones.
+
+### 🎯 2. 3-Stage Multi-Round Hiring Progression Pipeline
 - **Round 1: Technical Screening** — Deep dive into core mechanics, algorithms, state management, and live code walkthroughs.
 - **Round 2: System Design & Architecture** — High concurrency, distributed databases, Redis caching, microservices, and sharding strategies.
 - **Round 3: Behavioral & Bar Raiser** — Executive STAR framework (Situation, Task, Action, Result) communication and conflict resolution.
 - **Auto-Progression**: Clearing a stage unlocks the next round automatically with overall readiness badges (*Strong Hire*, *Hire*, *Borderline*, *Needs Polish*).
 
-### 🚀 2. 1-Click Curated Presets & Custom Configuration
+### 🚀 3. 1-Click Curated Presets & Custom Configuration
 - Pre-configured presets for popular engineering profiles:
   - 🚀 *MERN Stack Mastery*
   - ⚡ *Distributed Systems Architect*
@@ -179,5 +188,15 @@ For quick offline testing:
 
 ---
 
+## 👨‍💻 Author & Developer
+
+**Siddharth Saurabh**
+* 🎓 Chandigarh University • 2nd Year Student
+* 💻 B.E. in Computer Science & Engineering (CSE)
+* 🌐 GitHub: [@Siddharth-Saurabh](https://github.com/Siddharth-Saurabh)
+
+---
+
 ## 📜 License
-This project is licensed under the **ISC License**.
+This project is licensed under the **MIT License** - see the [LICENSE](file:///c:/Mern%20Stack/InterviewAI/LICENSE) file for full details.
+Copyright © 2026 Siddharth Saurabh. All Rights Reserved.
