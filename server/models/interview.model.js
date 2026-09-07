@@ -25,20 +25,70 @@ const interviewSchema = new mongoose.Schema({
         enum: ['Technical', 'Behavioral', 'System Design', 'Live Coding', 'HR'],
         default: 'Technical'
     },
+    mode: {
+        type: String,
+        enum: ['text', 'virtual'],
+        default: 'text'
+    },
+    interviewerPersonality: {
+        type: String,
+        default: 'Professional'
+    },
+    durationMinutes: {
+        type: Number,
+        default: 30
+    },
     questions: [
         {
             question: String,
             category: String,
             userAnswer: String,
+            answerMode: {
+                type: String,
+                enum: ['text', 'voice'],
+                default: 'text'
+            },
+            responseTime: {
+                type: Number,
+                default: 0
+            },
+            answerDuration: {
+                type: Number,
+                default: 0
+            },
+            fillerWordCount: {
+                type: Number,
+                default: 0
+            },
+            wordCount: {
+                type: Number,
+                default: 0
+            },
             feedback: {
                 score: Number, // 1 to 10
                 strengths: [String],
                 improvements: [String],
                 idealAnswer: String,
-                summary: String
+                summary: String,
+                followUpQuestion: String,
+                technicalKnowledge: Number,
+                communication: Number,
+                problemSolving: Number,
+                clarity: Number,
+                confidence: Number
             }
         }
     ],
+    analytics: {
+        technicalKnowledge: { type: Number, default: 0 },
+        communication: { type: Number, default: 0 },
+        problemSolving: { type: Number, default: 0 },
+        clarity: { type: Number, default: 0 },
+        confidence: { type: Number, default: 0 },
+        totalTimeSeconds: { type: Number, default: 0 },
+        fillerWordCount: { type: Number, default: 0 },
+        avgResponseTime: { type: Number, default: 0 }
+    },
     overallScore: {
         type: Number,
         default: 0
