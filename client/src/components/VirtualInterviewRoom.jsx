@@ -8,20 +8,23 @@ import {
   Send, 
   Clock, 
   Bot, 
-  RotateCcw,
-  Sparkles,
-  FileCode,
-  ListOrdered,
-  AlertCircle,
-  HelpCircle,
-  MessageSquare,
-  Zap,
-  Activity,
-  UserCheck,
-  Flame,
-  CheckCircle2,
-  Sliders,
-  Keyboard
+  RotateCcw, 
+  Sparkles, 
+  FileCode, 
+  ListOrdered, 
+  AlertCircle, 
+  HelpCircle, 
+  MessageSquare, 
+  Zap, 
+  Activity, 
+  UserCheck, 
+  Flame, 
+  CheckCircle2, 
+  Sliders, 
+  Keyboard,
+  Video,
+  VideoOff,
+  Camera
 } from 'lucide-react';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition.js';
 import { useTextToSpeech } from '../hooks/useTextToSpeech.js';
@@ -105,6 +108,50 @@ export default function VirtualInterviewRoom({
     }
     return () => clearInterval(interval);
   }, [isListening]);
+
+  // Camera Mirror Preview State
+  const [cameraActive, setCameraActive] = useState(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const toggleCamera = async () => {
+    if (cameraActive) {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      setCameraActive(false);
+    } else {
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+          setCameraActive(true);
+        }
+      } catch (err) {
+        console.warn('Camera preview not accessible:', err);
+      }
+    }
+  };
+
+  // Ensure camera streams stop on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Update video element when camera becomes active
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [cameraActive]);
 
   // Overall Countdown Timer
   useEffect(() => {
@@ -427,24 +474,96 @@ export default function VirtualInterviewRoom({
             </div>
           </div>
 
-          {/* Audio Controls */}
-          <div style={{ display: 'flex', gap: 10 }}>
+          {/* Audio & Video Controls */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <button 
+              type="button"
+              onClick={toggleCamera}
+              className="secondary-btn"
+              style={{ 
+                padding: '9px 14px', 
+                borderRadius: '12px',
+                border: cameraActive ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                background: cameraActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                color: cameraActive ? '#6ee7b7' : 'var(--text-muted)'
+              }}
+              title={cameraActive ? "Turn Off Camera Mirror" : "Turn On Camera Mirror"}
+            >
+              {cameraActive ? <Video size={17} color="#34d399" /> : <VideoOff size={17} />}
+              <span style={{ fontSize: '0.85rem' }}>{cameraActive ? 'Camera On' : 'Camera'}</span>
+            </button>
+
             <button 
               type="button"
               onClick={isSpeaking ? stopSpeaking : handleReplayQuestion}
               className="secondary-btn"
               style={{ 
-                padding: '9px 16px', 
+                padding: '9px 14px', 
                 borderRadius: '12px',
                 border: isSpeaking ? '1px solid rgba(244, 63, 94, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)'
               }}
               title={isSpeaking ? "Stop Audio" : "Replay Question Aloud"}
             >
-              {isSpeaking ? <VolumeX size={18} color="#f43f5e" /> : <Volume2 size={18} color="#818cf8" />}
-              <span style={{ fontSize: '0.88rem' }}>{isSpeaking ? 'Stop Speech' : 'Replay Question'}</span>
+              {isSpeaking ? <VolumeX size={17} color="#f43f5e" /> : <Volume2 size={17} color="#818cf8" />}
+              <span style={{ fontSize: '0.85rem' }}>{isSpeaking ? 'Stop Speech' : 'Replay'}</span>
             </button>
           </div>
         </div>
+
+        {/* Live Camera Mirror PIP Box (If Camera Active) */}
+        {cameraActive && (
+          <div style={{ 
+            marginBottom: 20, 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 14,
+            background: 'rgba(0, 0, 0, 0.4)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            borderRadius: '14px',
+            padding: '12px 16px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{
+              width: 140,
+              height: 95,
+              borderRadius: '10px',
+              overflow: 'hidden',
+              background: '#000',
+              border: '2px solid rgba(16, 185, 129, 0.5)',
+              position: 'relative',
+              boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)'
+            }}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
+              />
+              <span style={{
+                position: 'absolute',
+                bottom: 4,
+                left: 6,
+                fontSize: '0.62rem',
+                background: 'rgba(0, 0, 0, 0.75)',
+                color: '#6ee7b7',
+                padding: '1px 5px',
+                borderRadius: '4px',
+                fontWeight: 700
+              }}>
+                YOU (MIRROR)
+              </span>
+            </div>
+            <div>
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', display: 'block' }}>
+                Candidate Video Feed Active
+              </span>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                Self-preview for posture and eye contact practice. Video stays 100% local on your browser and is never recorded or uploaded.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Question Text Box */}
         <div style={{ 
