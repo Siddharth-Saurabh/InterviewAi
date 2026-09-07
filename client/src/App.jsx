@@ -3,6 +3,7 @@ import Navbar from './components/Navbar.jsx';
 import AuthPage from './components/AuthPage.jsx';
 import InterviewSetup from './components/InterviewSetup.jsx';
 import InterviewRoom from './components/InterviewRoom.jsx';
+import VirtualInterviewRoom from './components/VirtualInterviewRoom.jsx';
 import AnswerFeedback from './components/AnswerFeedback.jsx';
 import FinalReport from './components/FinalReport.jsx';
 import HistoryAnalytics from './components/HistoryAnalytics.jsx';
@@ -27,6 +28,7 @@ export default function App() {
   const [interviewData, setInterviewData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [evaluations, setEvaluations] = useState([]);
+  const [sessionAnalytics, setSessionAnalytics] = useState(null);
   const [currentFeedback, setCurrentFeedback] = useState(null);
   const [currentAnswer, setCurrentAnswer] = useState('');
 
@@ -108,10 +110,17 @@ export default function App() {
 
       const data = await res.json();
       if (data.success) {
-        setInterviewData(data.data);
+        setInterviewData({
+          ...data.data,
+          interviewerGreeting: data.interviewerGreeting,
+          mode: data.mode || config.mode,
+          interviewerPersonality: data.interviewerPersonality || config.interviewerPersonality,
+          durationMinutes: data.durationMinutes || config.durationMinutes
+        });
         setCurrentInterviewId(data.interviewId);
         setCurrentQuestionIndex(0);
         setEvaluations([]);
+        setSessionAnalytics(null);
         setCurrentFeedback(null);
         setSessionStage('in-progress');
 
@@ -143,7 +152,10 @@ export default function App() {
         role: 'Full Stack MERN Developer',
         level: 'Mid-Level',
         techStack: ['React', 'Node.js', 'MongoDB'],
-        questionCount: 5
+        questionCount: 5,
+        mode: 'virtual',
+        interviewerPersonality: 'Professional',
+        durationMinutes: 15
       }),
       roundNumber: nextRoundNum,
       interviewType: roundTypes[nextRoundNum] || 'Technical'
@@ -153,7 +165,7 @@ export default function App() {
   };
 
   // 3. Submit Question Answer
-  const handleAnswerSubmit = async (answer) => {
+  const handleAnswerSubmit = async (answer, options = {}) => {
     setSubmitting(true);
     setCurrentAnswer(answer);
     try {
@@ -172,7 +184,14 @@ export default function App() {
           question: currentQ?.question,
           userAnswer: answer,
           role: interviewData?.title,
-          level: 'Candidate'
+          level: currentConfig?.level || 'Mid-Level',
+          mode: currentConfig?.mode || 'text',
+          interviewerPersonality: currentConfig?.interviewerPersonality || 'Professional',
+          answerMode: options.answerMode || 'text',
+          responseTime: options.responseTime || 0,
+          answerDuration: options.answerDuration || 0,
+          fillerWordCount: options.fillerWordCount || 0,
+          wordCount: options.wordCount || answer.split(/\s+/).filter(Boolean).length
         })
       });
 
@@ -180,6 +199,9 @@ export default function App() {
       if (data.success) {
         setCurrentFeedback(data.feedback);
         setEvaluations(prev => [...prev, data.feedback]);
+        if (data.analytics) {
+          setSessionAnalytics(data.analytics);
+        }
         setSessionStage('feedback');
       } else {
         showToast(data.message || 'Failed to evaluate answer.');
@@ -212,6 +234,7 @@ export default function App() {
     setCurrentInterviewId(null);
     setCurrentQuestionIndex(0);
     setEvaluations([]);
+    setSessionAnalytics(null);
     setCurrentFeedback(null);
   };
 
@@ -307,14 +330,28 @@ export default function App() {
             )}
 
             {sessionStage === 'in-progress' && (
-              <InterviewRoom
-                interviewData={interviewData}
-                currentQuestionIndex={currentQuestionIndex}
-                totalQuestions={interviewData?.questions?.length || 5}
-                onAnswerSubmit={handleAnswerSubmit}
-                submitting={submitting}
-                onCancel={handleResetInterview}
-              />
+              currentConfig?.mode === 'virtual' ? (
+                <VirtualInterviewRoom
+                  interviewData={interviewData}
+                  currentQuestionIndex={currentQuestionIndex}
+                  totalQuestions={interviewData?.questions?.length || 5}
+                  onAnswerSubmit={handleAnswerSubmit}
+                  submitting={submitting}
+                  onCancel={handleResetInterview}
+                  personality={currentConfig?.interviewerPersonality || 'Professional'}
+                  durationMinutes={currentConfig?.durationMinutes || 15}
+                  onTimeExpired={() => setSessionStage('report')}
+                />
+              ) : (
+                <InterviewRoom
+                  interviewData={interviewData}
+                  currentQuestionIndex={currentQuestionIndex}
+                  totalQuestions={interviewData?.questions?.length || 5}
+                  onAnswerSubmit={handleAnswerSubmit}
+                  submitting={submitting}
+                  onCancel={handleResetInterview}
+                />
+              )
             )}
 
             {sessionStage === 'feedback' && (
@@ -331,6 +368,8 @@ export default function App() {
               <FinalReport
                 interviewData={interviewData}
                 evaluations={evaluations}
+                sessionAnalytics={sessionAnalytics}
+                currentConfig={currentConfig}
                 currentRound={currentRound}
                 onRetake={handleResetInterview}
                 onAdvanceNextRound={handleAdvanceNextRound}
