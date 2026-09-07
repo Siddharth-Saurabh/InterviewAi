@@ -250,9 +250,17 @@ export default function HistoryAnalytics({ user, apiUrl }) {
                 gap: 14 
               }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                     <span className="badge badge-primary">{item.level || 'Mid-Level'}</span>
                     <span className="badge badge-cyan">{item.interviewType || 'Technical'}</span>
+                    <span className="badge badge-amber">
+                      {item.mode === 'virtual' ? '🎙️ Virtual AI' : '💻 Text'}
+                    </span>
+                    {item.interviewerPersonality && (
+                      <span className="badge badge-primary" style={{ background: 'rgba(168, 85, 247, 0.15)', color: '#c084fc', borderColor: 'rgba(168, 85, 247, 0.3)' }}>
+                        🎭 {item.interviewerPersonality}
+                      </span>
+                    )}
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Calendar size={13} />
                       {new Date(item.createdAt).toLocaleDateString()}
@@ -317,7 +325,39 @@ export default function HistoryAnalytics({ user, apiUrl }) {
                   flexDirection: 'column',
                   gap: 12
                 }}>
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#818cf8' }}>
+                  {item.analytics && (
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', 
+                      gap: 8,
+                      background: 'rgba(0,0,0,0.2)',
+                      padding: '12px 16px',
+                      borderRadius: '10px'
+                    }}>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Technical</span>
+                        <div style={{ fontWeight: 700, color: '#6366f1' }}>{item.analytics.technicalKnowledge || item.overallScore || 7}/10</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Communication</span>
+                        <div style={{ fontWeight: 700, color: '#06b6d4' }}>{item.analytics.communication || 8}/10</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Problem Solving</span>
+                        <div style={{ fontWeight: 700, color: '#a855f7' }}>{item.analytics.problemSolving || item.overallScore || 7}/10</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Clarity</span>
+                        <div style={{ fontWeight: 700, color: '#10b981' }}>{item.analytics.clarity || 8}/10</div>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>AI-Estimated Confidence</span>
+                        <div style={{ fontWeight: 700, color: '#f59e0b' }}>{item.analytics.confidence || 7}/10</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#818cf8', marginTop: 4 }}>
                     Questions & Detailed Feedback in this session:
                   </h4>
                   {item.questions?.map((q, qIdx) => (
@@ -338,13 +378,24 @@ export default function HistoryAnalytics({ user, apiUrl }) {
                       </div>
                       {q.userAnswer && (
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: 6, background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '6px' }}>
-                          <strong style={{ color: '#94a3b8' }}>Your answer:</strong> "{q.userAnswer}"
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <strong style={{ color: '#94a3b8' }}>Answer ({q.answerMode === 'voice' ? '🎙️ Voice' : '💻 Text'}):</strong>
+                            {q.responseTime ? <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>⏱️ {q.responseTime}s response time</span> : null}
+                            {q.fillerWordCount ? <span style={{ fontSize: '0.75rem', color: '#fbbf24' }}>⚡ {q.fillerWordCount} fillers</span> : null}
+                          </div>
+                          "{q.userAnswer}"
                         </div>
                       )}
                       {q.feedback?.summary && (
                         <p style={{ fontSize: '0.85rem', color: '#818cf8', marginTop: 8, fontStyle: 'italic' }}>
                           💡 {q.feedback.summary}
                         </p>
+                      )}
+                      {q.feedback?.followUpQuestion && (
+                        <div style={{ marginTop: 8, padding: '8px 12px', background: 'rgba(6, 182, 212, 0.08)', borderRadius: '6px' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#22d3ee' }}>⚡ Interviewer Follow-up: </span>
+                          <span style={{ fontSize: '0.8rem', color: '#e2e8f0', fontStyle: 'italic' }}>"{q.feedback.followUpQuestion}"</span>
+                        </div>
                       )}
                     </div>
                   ))}

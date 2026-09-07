@@ -97,7 +97,18 @@ const TECH_SUGGESTIONS = [
   'PostgreSQL', 'Docker', 'AWS', 'GraphQL', 'TailwindCSS', 'Redis', 'Python'
 ];
 
+const PERSONALITY_OPTIONS = [
+  { id: 'Professional', name: 'Professional', desc: 'Formal, structured, and realistic industry standard', icon: '👔' },
+  { id: 'Friendly', name: 'Friendly', desc: 'Warm, encouraging, and supportive coaching tone', icon: '🤝' },
+  { id: 'Technical Expert', name: 'Technical Expert', desc: 'Deep internal mechanics, high scale & failure modes', icon: '🔬' },
+  { id: 'Strict', name: 'Strict', desc: 'Demanding, no-nonsense, challenges edge-cases', icon: '⚡' },
+  { id: 'HR Interviewer', name: 'HR Interviewer', desc: 'Behavioral dynamics, leadership & STAR framework', icon: '💼' }
+];
+
 export default function InterviewSetup({ onStartInterview, loading, userCredits, initialRound = 1 }) {
+  const [mode, setMode] = useState('virtual'); // 'virtual' | 'text'
+  const [personality, setPersonality] = useState('Professional');
+  const [durationMinutes, setDurationMinutes] = useState(15);
   const [role, setRole] = useState('Full Stack MERN Developer');
   const [customRole, setCustomRole] = useState('');
   const [level, setLevel] = useState('Mid-Level');
@@ -134,26 +145,29 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
       roundNumber: selectedRound,
       interviewType: roundConfig.id,
       techStack: selectedTech,
-      questionCount
+      questionCount,
+      mode,
+      interviewerPersonality: personality,
+      durationMinutes
     });
   };
 
   return (
-    <div className="container" style={{ paddingBottom: 60 }}>
+    <div className="container" style={{ paddingBottom: 60, maxWidth: 1040 }}>
       {/* Hero Header */}
-      <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto 36px auto' }}>
-        <div className="badge badge-primary" style={{ marginBottom: 14, padding: '6px 14px' }}>
-          <Sparkles size={14} color="#818cf8" />
+      <div style={{ textAlign: 'center', maxWidth: 840, margin: '0 auto 40px auto' }}>
+        <div className="badge badge-primary" style={{ marginBottom: 16, padding: '6px 16px', fontSize: '0.8rem' }}>
+          <Sparkles size={15} color="#a5b4fc" />
           <span>Full Multi-Round Tech Hiring Pipeline Simulator</span>
         </div>
         <h1 style={{ 
-          fontSize: 'clamp(2rem, 5vw, 3.2rem)', 
+          fontSize: 'clamp(2.2rem, 5.5vw, 3.4rem)', 
           fontWeight: 800, 
           lineHeight: 1.15, 
           letterSpacing: '-0.03em',
           marginBottom: 16 
         }}>
-          Simulate Full Tech Hiring Rounds <br/>
+          Simulate Real-World Tech Interviews <br/>
           <span style={{ 
             background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 50%, #a855f7 100%)',
             WebkitBackgroundClip: 'text',
@@ -162,29 +176,31 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
             From Screening to Offer Letter
           </span>
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: 1.6 }}>
-          Practice Round 1 (Technical Screening), Round 2 (System Architecture), and Round 3 (Bar Raiser). 
-          Clear each stage to unlock the next round with real-time AI scoring and 10/10 model answers.
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: 1.65, maxWidth: 680, margin: '0 auto' }}>
+          Choose between an interactive Voice-Powered Virtual AI Interview or a Classical Structured Text Coding assessment with real-time AI scoring and 10/10 model benchmark answers.
         </p>
       </div>
 
       {/* Setup Card */}
       <div className="glass-panel" style={{ 
-        maxWidth: 920, 
-        margin: '0 auto', 
-        padding: '32px 36px',
+        padding: '36px 40px',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'rgba(13, 19, 33, 0.85)'
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
 
           {/* Quick Presets */}
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 12, fontSize: '1.05rem', color: '#818cf8' }}>
-              <Zap size={18} color="#818cf8" />
-              Quick 1-Click Interview Presets
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: '1.05rem', color: '#a5b4fc' }}>
+                <Zap size={18} color="#818cf8" />
+                Quick 1-Click Interview Presets
+              </label>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Instant Pre-configured Tracks</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
               {PRESET_TEMPLATES.map((preset, pIdx) => (
                 <button
                   key={pIdx}
@@ -199,29 +215,208 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
                   className="secondary-btn"
                   style={{
                     padding: '12px 14px',
-                    borderRadius: '12px',
+                    borderRadius: '14px',
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 4,
-                    alignItems: 'flex-start'
+                    gap: 6,
+                    alignItems: 'flex-start',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)'
                   }}
                 >
-                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#fff' }}>{preset.name}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{preset.role} • {preset.level}</span>
+                  <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#fff' }}>{preset.name}</span>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+                    <span className="badge badge-primary" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>Round {preset.round}</span>
+                    <span className="badge badge-cyan" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>{preset.level}</span>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
 
+          {/* 0. Interview Experience Mode */}
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.1rem', color: '#fff' }}>
+              <Sparkles size={19} color="#6366f1" />
+              1. Choose Interview Experience Mode
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+              
+              {/* Virtual AI Mode */}
+              <div
+                onClick={() => setMode('virtual')}
+                style={{
+                  padding: '20px',
+                  borderRadius: '16px',
+                  border: '2px solid',
+                  borderColor: mode === 'virtual' ? '#6366f1' : 'rgba(255, 255, 255, 0.08)',
+                  background: mode === 'virtual' 
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(6, 182, 212, 0.12) 100%)' 
+                    : 'rgba(255, 255, 255, 0.02)',
+                  boxShadow: mode === 'virtual' ? '0 0 25px rgba(99, 102, 241, 0.3)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.25s ease',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem'
+                    }}>
+                      🎙️
+                    </div>
+                    <div>
+                      <span style={{ fontWeight: 800, fontSize: '1rem', color: '#fff', display: 'block' }}>Virtual AI Interview</span>
+                      <span style={{ fontSize: '0.72rem', color: '#22d3ee', fontWeight: 600 }}>Interactive Audio & Live Mic</span>
+                    </div>
+                  </div>
+                  {mode === 'virtual' && <CheckCircle2 size={20} color="#818cf8" />}
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                  Voice recognition transcription, speech question narration, conversational follow-ups, personality tones, and speaking clarity analytics.
+                </p>
+              </div>
+
+              {/* Text Mode */}
+              <div
+                onClick={() => setMode('text')}
+                style={{
+                  padding: '20px',
+                  borderRadius: '16px',
+                  border: '2px solid',
+                  borderColor: mode === 'text' ? '#06b6d4' : 'rgba(255, 255, 255, 0.08)',
+                  background: mode === 'text' 
+                    ? 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)' 
+                    : 'rgba(255, 255, 255, 0.02)',
+                  boxShadow: mode === 'text' ? '0 0 25px rgba(6, 182, 212, 0.25)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.25s ease',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, #06b6d4 0%, #10b981 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem'
+                    }}>
+                      💻
+                    </div>
+                    <div>
+                      <span style={{ fontWeight: 800, fontSize: '1rem', color: '#fff', display: 'block' }}>Standard Text Interview</span>
+                      <span style={{ fontSize: '0.72rem', color: '#6ee7b7', fontWeight: 600 }}>Markdown & Code Blocks</span>
+                    </div>
+                  </div>
+                  {mode === 'text' && <CheckCircle2 size={20} color="#22d3ee" />}
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                  Classic coding and architecture assessment with Markdown text input, code snippets, STAR format guidelines, and instant AI grading.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Conditional Personality & Timer Configuration (For Virtual Mode) */}
+          {mode === 'virtual' && (
+            <div style={{ 
+              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%)', 
+              border: '1px solid rgba(99, 102, 241, 0.3)', 
+              borderRadius: '18px', 
+              padding: '20px' 
+            }}>
+              {/* Personality Picker */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 12, fontSize: '0.95rem', color: '#c7d2fe' }}>
+                  <span>🎭</span> Select Interviewer Demeanor & Persona Tone
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                  {PERSONALITY_OPTIONS.map((p) => {
+                    const isSelected = personality === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => setPersonality(p.id)}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '12px',
+                          border: '1px solid',
+                          borderColor: isSelected ? '#818cf8' : 'rgba(255, 255, 255, 0.08)',
+                          background: isSelected ? 'rgba(99, 102, 241, 0.3)' : 'rgba(0, 0, 0, 0.25)',
+                          boxShadow: isSelected ? '0 0 15px rgba(99, 102, 241, 0.35)' : 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontSize: '1.1rem' }}>{p.icon}</span>
+                          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: isSelected ? '#fff' : 'var(--text-main)' }}>
+                            {p.name}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.3 }}>
+                          {p.desc}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Timer Duration */}
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 10, fontSize: '0.95rem', color: '#c7d2fe' }}>
+                  <Clock size={16} color="#818cf8" /> Countdown Timer Duration
+                </label>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {[15, 30, 45, 60].map((mins) => (
+                    <button
+                      key={mins}
+                      type="button"
+                      onClick={() => setDurationMinutes(mins)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid',
+                        borderColor: durationMinutes === mins ? '#6366f1' : 'rgba(255, 255, 255, 0.1)',
+                        background: durationMinutes === mins ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : 'rgba(0, 0, 0, 0.35)',
+                        color: '#fff',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      ⏱️ {mins}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 1. Interview Stage / Round Selector */}
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Compass size={18} color="#6366f1" />
-              1. Select Interview Stage / Round
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.1rem', color: '#fff' }}>
+              <Compass size={19} color="#6366f1" />
+              2. Select Hiring Stage / Round
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
               {INTERVIEW_ROUNDS.map((rnd) => {
                 const IconComponent = rnd.icon;
                 const isSelected = selectedRound === rnd.roundNumber;
@@ -230,11 +425,12 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
                     key={rnd.roundNumber}
                     onClick={() => setSelectedRound(rnd.roundNumber)}
                     style={{
-                      padding: '18px',
-                      borderRadius: '14px',
+                      padding: '20px',
+                      borderRadius: '16px',
                       border: '1px solid',
-                      borderColor: isSelected ? '#6366f1' : 'var(--border-subtle)',
-                      background: isSelected ? 'rgba(99, 102, 241, 0.16)' : 'rgba(255, 255, 255, 0.02)',
+                      borderColor: isSelected ? '#6366f1' : 'rgba(255, 255, 255, 0.08)',
+                      background: isSelected ? 'rgba(99, 102, 241, 0.18)' : 'rgba(255, 255, 255, 0.02)',
+                      boxShadow: isSelected ? '0 0 20px rgba(99, 102, 241, 0.25)' : 'none',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       position: 'relative'
@@ -245,22 +441,22 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        background: isSelected ? 'rgba(99, 102, 241, 0.3)' : 'rgba(255, 255, 255, 0.05)',
-                        padding: '4px 10px',
-                        borderRadius: '6px'
+                        background: isSelected ? 'rgba(99, 102, 241, 0.35)' : 'rgba(255, 255, 255, 0.06)',
+                        padding: '5px 12px',
+                        borderRadius: '8px'
                       }}>
-                        <IconComponent size={16} color={isSelected ? '#818cf8' : 'var(--text-muted)'} />
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isSelected ? '#a5b4fc' : '#fff' }}>
-                          ROUND {rnd.roundNumber}
+                        <IconComponent size={16} color={isSelected ? '#c7d2fe' : 'var(--text-muted)'} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isSelected ? '#fff' : '#cbd5e1' }}>
+                          STAGE {rnd.roundNumber}
                         </span>
                       </div>
-                      {isSelected && <CheckCircle2 size={18} color="#818cf8" />}
+                      {isSelected && <CheckCircle2 size={20} color="#818cf8" />}
                     </div>
 
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#fff', marginBottom: 4 }}>
                       {rnd.title.split(': ')[1]}
                     </h3>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
                       {rnd.desc}
                     </p>
                   </div>
@@ -271,25 +467,25 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
 
           {/* 2. Target Role */}
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Briefcase size={18} color="#06b6d4" />
-              2. Select or Enter Target Role
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.1rem', color: '#fff' }}>
+              <Briefcase size={19} color="#06b6d4" />
+              3. Target Role & Experience Level
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
               {POPULAR_ROLES.map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => { setRole(r); setCustomRole(''); }}
                   style={{
-                    padding: '8px 16px',
-                    borderRadius: '10px',
+                    padding: '9px 18px',
+                    borderRadius: '12px',
                     border: '1px solid',
-                    borderColor: role === r && !customRole ? '#06b6d4' : 'var(--border-subtle)',
-                    background: role === r && !customRole ? 'rgba(6, 182, 212, 0.2)' : 'rgba(255, 255, 255, 0.03)',
+                    borderColor: role === r && !customRole ? '#06b6d4' : 'rgba(255, 255, 255, 0.08)',
+                    background: role === r && !customRole ? 'rgba(6, 182, 212, 0.22)' : 'rgba(255, 255, 255, 0.03)',
                     color: role === r && !customRole ? '#22d3ee' : 'var(--text-main)',
                     fontSize: '0.9rem',
-                    fontWeight: 500,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     transition: 'all 0.2s ease'
                   }}
@@ -300,63 +496,58 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
             </div>
             <input
               type="text"
-              placeholder="Or type a custom role (e.g., Senior iOS Engineer, Cloud Platform Architect...)"
+              placeholder="Or type a custom role (e.g., Senior Distributed Systems Engineer, Staff SRE...)"
               value={customRole}
               onChange={(e) => setCustomRole(e.target.value)}
               style={{
                 width: '100%',
-                background: 'rgba(0, 0, 0, 0.3)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '10px',
-                padding: '10px 16px',
+                padding: '14px 18px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: 'rgba(0, 0, 0, 0.35)',
                 color: '#fff',
                 fontSize: '0.95rem',
                 outline: 'none',
-                marginTop: 6
+                marginBottom: 20
               }}
             />
-          </div>
 
-          {/* 3. Seniority Level */}
-          <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Target size={18} color="#a855f7" />
-              3. Experience & Seniority Level
-            </label>
+            {/* Experience Level */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-              {EXPERIENCE_LEVELS.map((exp) => (
-                <div
-                  key={exp.id}
-                  onClick={() => setLevel(exp.id)}
-                  style={{
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid',
-                    borderColor: level === exp.id ? '#a855f7' : 'var(--border-subtle)',
-                    background: level === exp.id ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.02)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, color: level === exp.id ? '#c084fc' : '#fff' }}>
-                      {exp.label}
-                    </span>
-                    {level === exp.id && <CheckCircle2 size={18} color="#c084fc" />}
+              {EXPERIENCE_LEVELS.map((lvl) => {
+                const isSelected = level === lvl.id;
+                return (
+                  <div
+                    key={lvl.id}
+                    onClick={() => setLevel(lvl.id)}
+                    style={{
+                      padding: '14px 16px',
+                      borderRadius: '12px',
+                      border: '1px solid',
+                      borderColor: isSelected ? '#a855f7' : 'rgba(255, 255, 255, 0.08)',
+                      background: isSelected ? 'rgba(168, 85, 247, 0.18)' : 'rgba(255, 255, 255, 0.02)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontWeight: 800, fontSize: '0.92rem', color: isSelected ? '#fff' : 'var(--text-main)' }}>
+                        {lvl.label}
+                      </span>
+                      {isSelected && <CheckCircle2 size={16} color="#c084fc" />}
+                    </div>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{lvl.desc}</p>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-                    {exp.desc}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          {/* 4. Tech Stack Tags */}
+          {/* 3. Tech Stack Tags */}
           <div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.05rem' }}>
-              <Code2 size={18} color="#10b981" />
-              4. Relevant Tech Stack & Frameworks
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 14, fontSize: '1.1rem', color: '#fff' }}>
+              <Code2 size={19} color="#a855f7" />
+              4. Tech Stack & Evaluation Domains
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
               {TECH_SUGGESTIONS.map((tech) => {
@@ -367,12 +558,12 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
                     type="button"
                     onClick={() => toggleTech(tech)}
                     style={{
-                      padding: '6px 14px',
-                      borderRadius: '20px',
+                      padding: '7px 14px',
+                      borderRadius: '10px',
                       border: '1px solid',
-                      borderColor: isSelected ? '#10b981' : 'var(--border-subtle)',
-                      background: isSelected ? 'rgba(16, 185, 129, 0.18)' : 'transparent',
-                      color: isSelected ? '#34d399' : 'var(--text-muted)',
+                      borderColor: isSelected ? '#a855f7' : 'rgba(255, 255, 255, 0.08)',
+                      background: isSelected ? 'rgba(168, 85, 247, 0.25)' : 'rgba(255, 255, 255, 0.03)',
+                      color: isSelected ? '#e9d5ff' : 'var(--text-muted)',
                       fontSize: '0.85rem',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -384,23 +575,27 @@ export default function InterviewSetup({ onStartInterview, loading, userCredits,
                 );
               })}
             </div>
-            <input
-              type="text"
-              placeholder="Add extra skill or framework and press Enter..."
-              value={customTechInput}
-              onChange={(e) => setCustomTechInput(e.target.value)}
-              onKeyDown={addCustomTech}
-              style={{
-                width: '100%',
-                background: 'rgba(0, 0, 0, 0.3)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '10px',
-                padding: '10px 16px',
-                color: '#fff',
-                fontSize: '0.9rem',
-                outline: 'none'
-              }}
-            />
+
+            {/* Custom Tag Input */}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="Add custom tech tag (press Enter)..."
+                value={customTechInput}
+                onChange={(e) => setCustomTechInput(e.target.value)}
+                onKeyDown={addCustomTech}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  color: '#fff',
+                  fontSize: '0.9rem',
+                  outline: 'none'
+                }}
+              />
+            </div>
           </div>
 
           {/* 5. Question Count & Cost */}

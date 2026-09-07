@@ -13,12 +13,20 @@ import {
   Crown,
   CheckCircle2,
   AlertCircle,
-  BookOpen
+  BookOpen,
+  Mic,
+  Clock,
+  Activity,
+  UserCheck,
+  Zap,
+  Award
 } from 'lucide-react';
 
 export default function FinalReport({ 
   interviewData, 
   evaluations, 
+  sessionAnalytics,
+  currentConfig,
   onRetake, 
   onGoHome, 
   onAdvanceNextRound,
@@ -37,6 +45,25 @@ export default function FinalReport({
   const scores = evaluations.map(e => e.score || 7);
   const averageScore = Math.round((scores.reduce((a, b) => a + b, 0) / (scores.length || 1)) * 10) / 10;
   const passed = averageScore >= 6.5;
+
+  const mode = currentConfig?.mode || interviewData?.mode || 'text';
+  const personality = currentConfig?.interviewerPersonality || interviewData?.interviewerPersonality || 'Professional';
+
+  // Multi-dimensional metrics
+  const avgOrFallback = (key, fallback) => {
+    if (sessionAnalytics?.[key]) return sessionAnalytics[key];
+    const vals = evaluations.map(e => e[key]).filter(v => typeof v === 'number');
+    if (vals.length > 0) return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+    return fallback;
+  };
+
+  const metrics = {
+    technicalKnowledge: avgOrFallback('technicalKnowledge', averageScore),
+    communication: avgOrFallback('communication', 8.0),
+    problemSolving: avgOrFallback('problemSolving', averageScore),
+    clarity: avgOrFallback('clarity', 7.8),
+    confidence: avgOrFallback('confidence', 7.5)
+  };
 
   const getReadinessLevel = (avg) => {
     if (avg >= 8.5) return { text: 'Strong Hire / FAANG Tier', color: '#10b981', badge: 'Exceptional' };
@@ -79,8 +106,18 @@ export default function FinalReport({
     let reportContent = `# InterviewAI Scorecard Report\n`;
     reportContent += `**Role:** ${interviewData?.title || 'Software Engineer'}\n`;
     reportContent += `**Round:** Round ${currentRound}\n`;
+    reportContent += `**Interview Mode:** ${mode === 'virtual' ? 'Virtual AI Interview' : 'Standard Text Interview'}\n`;
+    reportContent += `**Interviewer Persona:** ${personality}\n`;
     reportContent += `**Date:** ${new Date().toLocaleDateString()}\n`;
     reportContent += `**Overall Score:** ${averageScore} / 10 (${readiness.text})\n\n`;
+    
+    reportContent += `### Multi-Dimensional Analytics\n`;
+    reportContent += `- Technical Knowledge: ${metrics.technicalKnowledge} / 10\n`;
+    reportContent += `- Communication: ${metrics.communication} / 10\n`;
+    reportContent += `- Problem Solving: ${metrics.problemSolving} / 10\n`;
+    reportContent += `- Clarity: ${metrics.clarity} / 10\n`;
+    reportContent += `- AI-Estimated Communication Confidence: ${metrics.confidence} / 10\n\n`;
+
     reportContent += `---\n\n## Question Breakdown\n\n`;
 
     evaluations.forEach((ev, idx) => {
@@ -96,6 +133,9 @@ export default function FinalReport({
       if (ev.idealAnswer) {
         reportContent += `- **Model Benchmark Answer:**\n  ${ev.idealAnswer}\n`;
       }
+      if (ev.followUpQuestion) {
+        reportContent += `- **Interviewer Follow-Up:** ${ev.followUpQuestion}\n`;
+      }
       reportContent += `\n---\n\n`;
     });
 
@@ -108,13 +148,12 @@ export default function FinalReport({
     URL.revokeObjectURL(url);
   };
 
-  // Print/Save PDF
   const handlePrintReport = () => {
     window.print();
   };
 
   return (
-    <div className="container" style={{ maxWidth: 960, paddingBottom: 80 }}>
+    <div className="container" style={{ maxWidth: 1000, paddingBottom: 80 }}>
       {/* Top Banner Card */}
       <div className="glass-panel" style={{ 
         padding: '40px 36px', 
@@ -139,8 +178,18 @@ export default function FinalReport({
           {currentRound === 3 && passed ? <Crown size={38} color="#fff" /> : <Trophy size={36} color="#fff" />}
         </div>
 
-        <div className="badge badge-primary" style={{ marginBottom: 10 }}>
-          {currentRound === 3 ? 'Final Round 3 Completed' : `Round ${currentRound} Completed`}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+          <span className="badge badge-primary">
+            {currentRound === 3 ? 'Final Round 3 Completed' : `Round ${currentRound} Completed`}
+          </span>
+
+          <span className="badge badge-cyan">
+            {mode === 'virtual' ? '🎙️ Virtual AI Interview' : '💻 Text Interview'}
+          </span>
+
+          <span className="badge badge-amber">
+            🎭 {personality} Persona
+          </span>
         </div>
 
         <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: 8 }}>
@@ -151,7 +200,7 @@ export default function FinalReport({
         <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', maxWidth: 640, margin: '0 auto 24px auto' }}>
           {currentRound === 3 && passed
             ? 'Outstanding performance across Technical Screening, System Design, and Behavioral Bar Raiser. You meet the benchmark for a Top-Tier Offer!'
-            : 'Review your detailed evaluation, strengths, and areas for improvement below.'}
+            : 'Review your multi-dimensional evaluation, strengths, and areas for improvement below.'}
         </p>
 
         {/* Score and Readiness Badge */}
@@ -159,12 +208,12 @@ export default function FinalReport({
           display: 'inline-flex', 
           alignItems: 'center', 
           gap: 24, 
-          background: 'rgba(0, 0, 0, 0.3)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '16px',
-          padding: '16px 28px',
-          flexWrap: 'wrap',
-          justifyContent: 'center'
+          background: 'rgba(0, 0, 0, 0.3)', 
+          border: '1px solid var(--border-subtle)', 
+          borderRadius: '16px', 
+          padding: '16px 28px', 
+          flexWrap: 'wrap', 
+          justifyContent: 'center' 
         }}>
           <div>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: readiness.color, lineHeight: 1 }}>
@@ -183,6 +232,37 @@ export default function FinalReport({
               {readiness.badge}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Multi-Dimensional Competency Breakdown */}
+      <div className="glass-panel" style={{ padding: '28px 32px', marginBottom: 28 }}>
+        <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Activity size={18} color="#6366f1" />
+          Multi-Dimensional Competency Breakdown
+        </h3>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+          {[
+            { label: 'Technical Knowledge', val: metrics.technicalKnowledge, color: '#6366f1' },
+            { label: 'Communication Clarity', val: metrics.communication, color: '#06b6d4' },
+            { label: 'Problem Solving & Architecture', val: metrics.problemSolving, color: '#a855f7' },
+            { label: 'Answer Structure & Depth', val: metrics.clarity, color: '#10b981' },
+            { label: 'AI-Estimated Communication Confidence', val: metrics.confidence, color: '#f59e0b', note: 'Derived from response completeness & structure' }
+          ].map((item, mIdx) => (
+            <div key={mIdx} style={{ background: 'rgba(0,0,0,0.25)', padding: '14px 18px', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e8f0' }}>{item.label}</span>
+                  {item.note && <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-dim)' }}>{item.note}</span>}
+                </div>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: item.color }}>{item.val}/10</span>
+              </div>
+              <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${(item.val / 10) * 100}%`, height: '100%', background: item.color, transition: 'width 0.4s ease' }} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -301,17 +381,28 @@ export default function FinalReport({
 
               <div style={{ background: 'rgba(0,0,0,0.25)', padding: '14px 18px', borderRadius: '10px', marginBottom: 14 }}>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  💡 <strong>Interviewer Summary:</strong> {ev.summary || 'Solid conceptual answers demonstrated with room for deeper optimization examples.'}
+                  💡 <strong>Interviewer Evaluation:</strong> {ev.summary || 'Solid conceptual answers demonstrated with room for deeper optimization examples.'}
                 </p>
               </div>
 
               {ev.idealAnswer && (
-                <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '14px 18px', borderRadius: '10px' }}>
+                <div style={{ background: 'rgba(99, 102, 241, 0.08)', border: '1px solid rgba(99, 102, 241, 0.2)', padding: '14px 18px', borderRadius: '10px', marginBottom: 10 }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <BookOpen size={14} /> 10/10 Benchmark Solution Architecture:
                   </span>
                   <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.6 }}>
                     {ev.idealAnswer}
+                  </p>
+                </div>
+              )}
+
+              {ev.followUpQuestion && (
+                <div style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.2)', padding: '12px 16px', borderRadius: '10px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#22d3ee', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Zap size={14} /> Contextual Follow-up Question:
+                  </span>
+                  <p style={{ fontSize: '0.85rem', color: '#e2e8f0', fontStyle: 'italic' }}>
+                    "{ev.followUpQuestion}"
                   </p>
                 </div>
               )}
